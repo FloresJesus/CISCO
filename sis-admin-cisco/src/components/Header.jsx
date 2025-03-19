@@ -1,5 +1,6 @@
 'use client'
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState } from 'react';
 
 const Header = () => {
@@ -11,19 +12,20 @@ const Header = () => {
         <nav className="flex justify-between items-center py-4">
           {/* Logo y enlaces principales */}
           <div className="flex items-center space-x-8">
-            <a href="/" className="flex items-center">
+            <Link href="/" className="flex items-center">
               <Image src="/images/cisco2.png" width={100} height={100} alt="logo" />
-            </a>
+            </Link>
             <div className="hidden md:flex items-center space-x-8">
-              <a href="/" className="font-bold text-celestial hover:text-dark">Home</a>
-              <a href="/about" className="text-celestial hover:text-dark">About</a>
+              <Link href="/" className="font-bold text-celestial">Inicio</Link>
+              <Link href="/about" className="text-celestial">Cursos</Link>
+              <Link href="/about" className="text-celestial">About</Link>
             </div>
           </div>
 
           {/* Enlaces de login y register */}
-          <div className="hidden md:flex items-center space-x-8">
-            <a href="/login" className="text-celestial hover:text-dark">Login</a>
-            <a href="/register" className="bg-celestial text-white px-4 py-2 rounded hover:bg-dark">Register</a>
+          <div className="hidden md:flex items-center space-x-4">
+            <Link href="/login" className="border rounded px-4 py-2 text-celestial hover:text-white hover:bg-celestial">Iniciar sesión</Link>
+            <Link href="/register" className="border bg-celestial text-white px-4 py-2 rounded hover:bg-white hover:text-celestial">Registrate</Link>
           </div>
 
           {/* Botón de menú para móviles */}
@@ -44,10 +46,10 @@ const Header = () => {
         {/* Menú desplegable para móviles */}
         {isOpen && (
           <div className="md:hidden mt-4 pb-4">
-            <a href="/" className="block py-2 text-celestial hover:text-dark">Home</a>
-            <a href="/about" className="block py-2 text-celestial hover:text-dark">About</a>
-            <a href="/login" className="block py-2 text-celestial hover:text-dark">Login</a>
-            <a href="/register" className="block py-2 text-celestial hover:text-dark">Register</a>
+            <Link href="/" className="block py-2 text-celestial hover:text-dark">Inicio</Link>
+            <Link href="/about" className="block py-2 text-celestial hover:text-dark">About</Link>
+            <Link href="/login" className="block py-2 text-celestial hover:text-dark">Login</Link>
+            <Link href="/register" className="block py-2 text-celestial hover:text-dark">Register</Link>
           </div>
         )}
       </div>

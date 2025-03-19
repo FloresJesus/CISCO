@@ -1,8 +1,10 @@
 import React from 'react'
-
+import Register from '@/components/Register'
 const HomePage = () => {
   return (
-    <div className='text-primary'>HomePage</div>
+    <div>
+      <Register/>
+    </div>
   )
 }
 

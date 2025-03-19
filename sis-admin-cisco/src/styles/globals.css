@@ -5,10 +5,3 @@
   --color-secondary: #F2F2F2;
   --color-celestial: #049FD9
 }
-
-a{
-  color: var(--color-secondary);
-}
-a:hover{
-  color: var(--color-celestial);
-}

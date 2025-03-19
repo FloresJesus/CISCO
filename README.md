@@ -30,7 +30,7 @@ Sigue estos pasos para instalar y ejecutar el proyecto en tu máquina local:
 1. **Clonar el Repositorio**:
     ```bash
     git clone https://github.com/Jesus-A-Flores/CISCO.git
-    cd sistema-administracion-cisco
+    cd sistema-admin-cisco
 2. **Instalar dependencias:**
     ```bash
     npm install
