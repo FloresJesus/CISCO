@@ -6,6 +6,10 @@ import { useState } from 'react';
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
 
+  const handleLinkClick = () => {
+    setIsOpen(false);
+  };
+
   return (
     <header className="bg-primary text-dark shadow-md">
       <div className="container mx-auto px-4">
@@ -17,8 +21,10 @@ const Header = () => {
             </Link>
             <div className="hidden md:flex items-center space-x-8">
               <Link href="/" className="font-bold text-celestial">Inicio</Link>
-              <Link href="/about" className="text-celestial">Cursos</Link>
+              <Link href="/cursos" className="text-celestial">Cursos</Link>
+              <Link href="/about" className="text-celestial">Calificaciones</Link>
               <Link href="/about" className="text-celestial">About</Link>
+
             </div>
           </div>
 
@@ -45,11 +51,13 @@ const Header = () => {
 
         {/* Menú desplegable para móviles */}
         {isOpen && (
-          <div className="md:hidden mt-4 pb-4">
-            <Link href="/" className="block py-2 text-celestial hover:text-dark">Inicio</Link>
-            <Link href="/about" className="block py-2 text-celestial hover:text-dark">About</Link>
-            <Link href="/login" className="block py-2 text-celestial hover:text-dark">Login</Link>
-            <Link href="/register" className="block py-2 text-celestial hover:text-dark">Register</Link>
+          <div className="md:hidden mt-4 pb-4 space-y-2">
+            <Link href="/" className="block py-2 text-celestial hover:text-dark" onClick={handleLinkClick}>Inicio</Link>
+            <Link href="/cursos" className="block py-2 text-celestial hover:text-dark" onClick={handleLinkClick}>Cursos</Link>
+            <Link href="/about" className="block py-2 text-celestial hover:text-dark" onClick={handleLinkClick}>Calificaciones</Link>
+            <Link href="/about" className="block py-2 text-celestial hover:text-dark" onClick={handleLinkClick}>About</Link>
+            <Link href="/login" className="block py-2 text-celestial hover:text-dark" onClick={handleLinkClick}>Iniciar sesión</Link>
+            <Link href="/register" className="block py-2 text-celestial hover:text-dark" onClick={handleLinkClick}>Registrate</Link>
           </div>
         )}
       </div>
