@@ -1,12 +1,11 @@
-import React from 'react'
+import HomeForm from '@/components/HomeForm';
 
 const HomePage = () => {
   return (
-    <div className='text-primary'>
-      <h1>BIENVENIDO</h1>
-      <h2>SISTEMA ACADEMICO CISCO</h2>
+    <div>
+      <HomeForm />
     </div>
   )
 }
 
-export default HomePage
+export default HomePage;

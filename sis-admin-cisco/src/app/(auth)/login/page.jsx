@@ -1,14 +1,14 @@
-import CourseForm from '@/components/CourseForm';
+import LoginForm from '@/components/auth/LoginForm';
 
 export const metadata = {
-  title: 'Registrate | CISCO Academy',
+  title: 'Iniciar Sesión | CISCO Academy',
 };
 
 export default function LoginPage() {
   return (
     <main className="min-h-screen flex items-center justify-center">
       <div>
-        <CourseForm />
+        <LoginForm />
       </div>
     </main>
   );

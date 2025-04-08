@@ -3,5 +3,13 @@
 @theme {
   --color-primary: #005073;
   --color-secondary: #F2F2F2;
-  --color-celestial: #049FD9
+  --color-celestial: #049FD9;
+  
+  --color-ciscoBlue: #049FD9;
+  --color-ciscoDarkBlue: #1D428A;
+  --color-animate: #00BCEB;
+  --color-accent: #FF6B00;
+  --color-dark: #2D3748;
+  --color-light: #F7FAFC;
+  --color-gray: #718096;
 }
