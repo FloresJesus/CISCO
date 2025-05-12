@@ -1,103 +1,85 @@
-import { NextResponse } from "next/server";
-import db from '@/libs/db';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import { NextResponse } from "next/server"
+import db from "@/libs/db"
+import bcrypt from "bcryptjs"
+import jwt from "jsonwebtoken"
 
 export async function POST(request) {
   try {
-    // 1. Obtener y validar los datos del cuerpo
-    const { email, password } = await request.json();
+    const { email, password } = await request.json()
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { success: false, error: 'Email y contraseña son requeridos' },
-        { status: 400 }
-      );
+    if (!email?.trim() || !password) {
+      return NextResponse.json({ success: false, error: "Email y contraseña son requeridos" }, { status: 400 })
     }
 
-    // 2. Validar formato de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { success: false, error: 'Formato de correo electrónico inválido' },
-        { status: 400 }
-      );
-    }
+    const [user] = await db.query(
+      `SELECT 
+        u.id, 
+        u.email, 
+        u.contrasena_hash, 
+        u.rol, 
+        u.activo,
+        COALESCE(e.nombre, i.nombre) AS nombre,
+        COALESCE(e.apellido, i.apellido) AS apellido,
+        COALESCE(e.foto_perfil, i.foto_perfil) AS foto_perfil
+      FROM usuario u
+      LEFT JOIN estudiante e ON u.id = e.usuario_id
+      LEFT JOIN instructor i ON u.id = i.usuario_id
+      WHERE u.email = ?`,
+      [email.trim().toLowerCase()],
+    )
 
-    // 3. Buscar usuario en la base de datos
-    const [user] = await db.query('SELECT * FROM Usuario WHERE email = ?', [email]);
-    
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'Credenciales inválidas' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: "Credenciales inválidas" }, { status: 401 })
     }
 
-    // 4. Verificar contraseña
-    const passwordMatch = await bcrypt.compare(password, user.contrasena_hash);
-    
-    if (!passwordMatch) {
-      return NextResponse.json(
-        { success: false, error: 'Credenciales inválidas' },
-        { status: 401 }
-      );
+    const isPasswordValid = await bcrypt.compare(password, user.contrasena_hash)
+    if (!isPasswordValid) {
+      return NextResponse.json({ success: false, error: "Credenciales inválidas" }, { status: 401 })
     }
 
-    // 5. Generar token JWT
+    await db.query("UPDATE usuario SET ultimo_acceso = NOW() WHERE id = ?", [user.id])
+
     const token = jwt.sign(
       {
         id: user.id,
         email: user.email,
-        rol: user.rol
+        rol: user.rol,
       },
       process.env.JWT_SECRET,
-      { expiresIn: '1d' } // Token expira en 1 día
-    );
+      { expiresIn: "8h" },
+    )
 
-    // 6. Obtener datos adicionales del usuario según su rol
-    let userData = { id: user.id, email: user.email, rol: user.rol };
-    
-    if (user.rol === 'estudiante') {
-      const [estudiante] = await db.query('SELECT * FROM Estudiante WHERE usuario_id = ?', [user.id]);
-      userData = { ...userData, ...estudiante };
-    } else if (user.rol === 'instructor') {
-      const [instructor] = await db.query('SELECT * FROM Instructor WHERE usuario_id = ?', [user.id]);
-      userData = { ...userData, ...instructor };
+    const userData = {
+      id: user.id,
+      email: user.email,
+      nombre: user.nombre,
+      apellido: user.apellido,
+      rol: user.rol,
+      foto_perfil: user.foto_perfil,
     }
 
-    // 7. Crear respuesta exitosa
     const response = NextResponse.json(
       {
         success: true,
-        message: 'Inicio de sesión exitoso',
         user: userData,
-        token
       },
-      { status: 200 }
-    );
+      { status: 200 },
+    )
 
-    // 8. Configurar cookie HTTP-only (opcional pero recomendado)
+    // Configurar cookie HTTP-only segura
     response.cookies.set({
-      name: 'authToken',
+      name: "authToken", // Nombre consistente
       value: token,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 86400 // 1 día en segundos
-    });
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 60 * 60 * 8, // 8 horas
+      path: "/",
+    })
 
-    return response;
-
+    return response
   } catch (error) {
-    console.error('Error en endpoint de login:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Error al procesar el inicio de sesión',
-        ...(process.env.NODE_ENV === 'development' && { details: error.message })
-      },
-      { status: 500 }
-    );
+    console.error("Error en login:", error)
+    return NextResponse.json({ success: false, error: "Error en el servidor" }, { status: 500 })
   }
 }

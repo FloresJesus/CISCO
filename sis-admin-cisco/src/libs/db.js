@@ -7,7 +7,7 @@ const db = mysql({
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '26052004',
     port: parseInt(process.env.DB_PORT || '3306'),
-    database: process.env.DB_NAME || 'academia_cisco',
+    database: process.env.DB_NAME || 'cisco_academy',
     // Opciones adicionales recomendadas
     connectionLimit: 10, // Número máximo de conexiones
     connectTimeout: 10000, // 10 segundos de timeout

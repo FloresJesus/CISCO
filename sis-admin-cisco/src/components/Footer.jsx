@@ -1,76 +1,54 @@
 'use client'
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { FaFacebook, FaTwitter, FaLinkedin, FaYoutube, FaInstagram } from 'react-icons/fa';
-import { MdEmail, MdPhone, MdLocationOn } from 'react-icons/md';
-import Image from 'next/image';
+import Link from 'next/link'
+import Image from 'next/image'
+import { FaFacebook, FaTwitter, FaLinkedin, FaYoutube, FaInstagram, FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from 'react-icons/fa'
 
-const Footer = () => {
-  const pathname = usePathname();
+export default function Footer() {
+  const currentYear = new Date().getFullYear()
 
-  // No mostrar footer en páginas de autenticación
-  if (pathname.startsWith('/login') || pathname.startsWith('/register')) {
-    return null;
-  }
+  const quickLinks = [
+    { name: 'Inicio', href: '/' },
+    { name: 'Cursos', href: '/cursos' },
+    { name: 'Contacto', href: '/contact' }
+  ]
 
-  const footerLinks = [
-    {
-      title: 'Cursos',
-      links: [
-        { name: 'CCNA', href: '/cursos/ccna' },
-        { name: 'CyberSecurity', href: '/cursos/cybersecurity' },
-        { name: 'DevNet', href: '/cursos/devnet' },
-      ],
-    },
-    {
-      title: 'Recursos',
-      links: [
-        { name: 'Documentación', href: '/recursos' },
-        { name: 'Laboratorios', href: '/laboratorios' },
-        { name: 'Blog', href: '/blog' },
-      ],
-    },
-    {
-      title: 'Acerca de',
-      links: [
-        { name: 'Nuestra Academia', href: '/about' },
-        { name: 'Instructores', href: '/instructores' },
-        { name: 'Contacto', href: '/contacto' },
-      ],
-    },
-  ];
+  const legalLinks = [
+    { name: 'Términos de servicio', href: '/terms' },
+    { name: 'Política de privacidad', href: '/privacy' },
+    { name: 'Cookies', href: '/cookies' },
+    { name: 'Aviso legal', href: '/legal' }
+  ]
 
-  const socialLinks = [
-    { icon: <FaFacebook size={20} />, href: '#' }
-  ];
+  const socialMedia = [
+    { icon: <FaFacebook />, href: 'https://facebook.com/cisco.uto' },
+    
+  ]
 
   return (
-    <footer className="bg-ciscoDarkBlue text-white pt-12 pb-6 mt-12">
+    <footer className="bg-ciscoDarkBlue text-white pt-12 pb-6">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* Logo y descripción */}
-          <div className="md:col-span-1">
-            <Link href="/" className="flex items-center mb-4">
+          <div className="lg:col-span-1">
+            <div className="mb-4">
               <Image 
                 src="/images/logo3.png" 
-                width={140} 
-                height={70} 
-                alt="CISCO Academy Logo"
-                className="hover:opacity-90 transition-opacity"
+                width={180} 
+                height={80} 
+                alt="Cisco Academy Logo"
               />
-            </Link>
-            <p className="text-sm text-celestial mb-4">
-              Formando a los profesionales de redes del futuro con certificaciones CISCO reconocidas mundialmente.
+            </div>
+            <p className="mb-4 text-gray-300">
+              Formando a la próxima generación de profesionales en redes y seguridad con estándares de calidad CISCO.
             </p>
             <div className="flex space-x-4">
-              {socialLinks.map((social, index) => (
-                <Link
+              {socialMedia.map((social, index) => (
+                <Link 
                   key={index}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-celestial hover:text-white transition-colors"
-                  aria-label={`Red social ${index}`}
+                  className="text-white hover:text-celestial text-xl transition-colors"
                 >
                   {social.icon}
                 </Link>
@@ -78,64 +56,73 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Links del footer */}
-          {footerLinks.map((column, index) => (
-            <div key={index} className="mt-4 md:mt-0">
-              <h3 className="text-lg font-semibold mb-4 text-celestial">{column.title}</h3>
-              <ul className="space-y-2">
-                {column.links.map((link, linkIndex) => (
-                  <li key={linkIndex}>
-                    <Link
-                      href={link.href}
-                      className="text-sm text-celestial hover:text-white transition-colors"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {/* Enlaces rápidos */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 border-b border-celestial/30 pb-2">Enlaces Rápidos</h3>
+            <ul className="space-y-2">
+              {quickLinks.map((link, index) => (
+                <li key={index}>
+                  <Link 
+                    href={link.href}
+                    className="text-gray-300 hover:text-white transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-          {/* Información de contacto */}
-          <div className="mt-4 md:mt-0">
-            <h3 className="text-lg font-semibold mb-4 text-celestial">Contacto</h3>
+          {/* Enlaces legales */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 border-b border-celestial/30 pb-2">Legal</h3>
+            <ul className="space-y-2">
+              {legalLinks.map((link, index) => (
+                <li key={index}>
+                  <Link 
+                    href={link.href}
+                    className="text-gray-300 hover:text-white transition-colors"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Contacto */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 border-b border-celestial/30 pb-2">Contacto</h3>
             <ul className="space-y-3">
               <li className="flex items-start">
-                <MdLocationOn className="mt-1 mr-2 text-celestial" size={18} />
-                <span className="text-sm text-celestial">
-                  Av. Tecnológico 123, Ciudad de México
-                </span>
+                <FaMapMarkerAlt className="mt-1 mr-3 text-celestial flex-shrink-0" />
+                <span className="text-gray-300">Pagador entre Ballivián y Aldana- Carr. Ing. Sistemas e Ing. Informatica</span>
               </li>
               <li className="flex items-center">
-                <MdPhone className="mr-2 text-celestial" size={18} />
-                <span className="text-sm text-celestial">+591</span>
+                <FaPhone className="mr-3 text-celestial flex-shrink-0" />
+                <span className="text-gray-300">+591 69585007</span>
               </li>
               <li className="flex items-center">
-                <MdEmail className="mr-2 text-celestial" size={18} />
-                <span className="text-sm text-celestial">contacto@ciscoacademy.mx</span>
+                <FaEnvelope className="mr-3 text-celestial flex-shrink-0" />
+                <span className="text-gray-300">Academia@cisco.sistemas.edu.bo</span>
+              </li>
+              <li className="flex items-center">
+                <FaClock className="mr-3 text-celestial flex-shrink-0" />
+                <span className="text-gray-300">Sin definir</span>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Derechos de autor */}
-        <div className="border-t border-celestial/20 pt-6 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-celestial mb-4 md:mb-0">
-            © {new Date().getFullYear()} CISCO Academy. Todos los derechos reservados.
-          </p>
-          <div className="flex space-x-6">
-            <Link href="/privacy" className="text-sm text-celestial hover:text-white transition-colors">
-              Política de Privacidad
-            </Link>
-            <Link href="/terms" className="text-sm text-celestial hover:text-white transition-colors">
-              Términos de Servicio
-            </Link>
+        {/* División */}
+        <div className="border-t border-celestial/20 pt-6">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p className="text-gray-300 text-sm mb-4 md:mb-0">
+              © {currentYear} Cisco Networking Academy. Todos los derechos reservados.
+            </p>
           </div>
         </div>
       </div>
     </footer>
-  );
-};
-
-export default Footer;
+  )
+}

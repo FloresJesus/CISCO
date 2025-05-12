@@ -142,7 +142,7 @@ const Register = () => {
         fecha_nacimiento: formData.fecha_nacimiento || null
       }
 
-      const response = await axios.post('/api/auth/register', userData, {
+      const response = await axios.post('/api/register', userData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -156,7 +156,7 @@ const Register = () => {
       }
 
       setTimeout(() => {
-        router.push('/auth/verify-email')
+        router.push('/login')
       }, 2000)
     } catch (err) {
       let errorMessage = 'Error al registrar'

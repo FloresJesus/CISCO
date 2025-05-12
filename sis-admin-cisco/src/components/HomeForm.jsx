@@ -162,7 +162,7 @@ export default function HomeForm() {
       </section>
 
       {/* Stats Section */}
-      <section className="bg-ciscoDarkBlue text-white py-16">
+      {/*<section className="bg-ciscoDarkBlue text-white py-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div className="p-4">
@@ -183,7 +183,7 @@ export default function HomeForm() {
             </div>
           </div>
         </div>
-      </section>
+      </section>*/}
 
       {/* CTA Section */}
       <section className="bg-gradient-to-r from-ciscoBlue to-animate text-white py-16">
