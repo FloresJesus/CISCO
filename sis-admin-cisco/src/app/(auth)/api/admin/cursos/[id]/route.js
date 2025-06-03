@@ -11,7 +11,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
-    const { id } = params
+    const id = params.id
 
     // Obtener datos del curso
     const [curso] = await db.query(

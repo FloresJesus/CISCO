@@ -41,7 +41,7 @@ export default function CursosTable() {
         params.append("nivel", filtroNivel)
       }
 
-      const { data } = await api.get(`/api/admin/cursos?${params.toString()}`)
+      const { data } = await api.get(`/admin/cursos?${params.toString()}`)
       setCursos(data.cursos)
       setPagination((prev) => ({
         ...prev,
@@ -78,7 +78,7 @@ export default function CursosTable() {
     }
 
     try {
-      await api.delete(`/api/admin/cursos/${id}`)
+      await api.delete(`/admin/cursos/${id}`)
       fetchCursos()
     } catch (err) {
       console.error("Error al eliminar curso:", err)

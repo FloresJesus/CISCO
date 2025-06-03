@@ -73,7 +73,7 @@ export default function UsuariosTable({ rolFiltro = "", titulo = "Gestión de Us
     }
 
     try {
-      await api.delete(`/api/admin/usuarios/${id}`)
+      await api.delete(`/admin/usuarios/${id}`)
       fetchUsuarios()
     } catch (err) {
       console.error("Error al eliminar usuario:", err)

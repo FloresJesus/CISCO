@@ -54,7 +54,7 @@ export default function AdminSidebar() {
       icon: <FiBookOpen className="w-5 h-5" />,
       submenu: 'cursos',
       items: [
-        { title: 'Catálogo de Cursos', path: '/admin/cursos/catalogo' },
+        { title: 'Catálogo de Cursos', path: '/admin/cursos' },
         { title: 'Paralelos', path: '/admin/cursos/paralelos' },
         { title: 'Módulos', path: '/admin/cursos/modulos' },
         { title: 'Evaluaciones', path: '/admin/cursos/evaluaciones' },

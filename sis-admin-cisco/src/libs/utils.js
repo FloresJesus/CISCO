@@ -18,7 +18,8 @@ export function formatDate(dateString) {
   
     return new Intl.NumberFormat("es-EC", {
       style: "currency",
-      currency: "USD",
+      //en bolivianos
+      currency: "BOB",
       minimumFractionDigits: 2,
     }).format(amount)
   }

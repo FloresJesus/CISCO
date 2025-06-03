@@ -18,7 +18,7 @@ export default function UsuarioDetail({ usuario: initialUsuario }) {
     setLoading(true)
     setError(null)
     try {
-      const { data } = await api.get(`/api/admin/usuarios/${initialUsuario.id}`)
+      const { data } = await api.get(`/admin/usuarios/${initialUsuario.id}`)
       setUsuario(data)
     } catch (err) {
       console.error("Error al cargar datos del usuario:", err)

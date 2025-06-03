@@ -107,10 +107,10 @@ export default function CursoForm({ curso = null }) {
 
       // Crear o actualizar curso
       if (isEditing) {
-        await api.put(`/api/admin/cursos/${curso.id}`, formData)
+        await api.put(`/admin/cursos/${curso.id}`, formData)
         setSuccess(true)
       } else {
-        await api.post("/api/admin/cursos", formData)
+        await api.post("/admin/cursos", formData)
         router.push("/admin/cursos")
       }
     } catch (err) {

@@ -59,7 +59,6 @@ const Header = () => {
   const navLinks = [
     { name: "Inicio", href: "/" },
     { name: "Cursos", href: "/cursos" },
-    //{ name: "Recursos", href: "/recursos" },
     ...(user?.rol === "admin" ? [{ name: "Admin", href: "/admin" }] : []),
     ...(user?.rol === "instructor" ? [{ name: "Instructor", href: "/instructor" }] : []),
   ]
@@ -141,6 +140,7 @@ const Header = () => {
                     setIsMobileMenuOpen(false)
                   }}
                   className="p-2 text-white hover:text-celestial"
+                  aria-label="Buscar"
                 >
                   <FaSearch size={16} />
                 </button>
@@ -151,6 +151,7 @@ const Header = () => {
                     setIsMobileMenuOpen(false)
                   }}
                   className="p-2 text-white hover:text-celestial relative"
+                  aria-label="Notificaciones"
                 >
                   <FaBell size={16} />
                   <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
@@ -160,6 +161,8 @@ const Header = () => {
                   <button
                     onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                     className="flex items-center space-x-2 focus:outline-none"
+                    aria-expanded={isProfileMenuOpen}
+                    aria-haspopup="true"
                   >
                     {userData.photo ? (
                       <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
@@ -193,10 +196,10 @@ const Header = () => {
                         <p className="text-sm font-medium text-gray-900 truncate">{userData.name}</p>
                         <p className="text-xs text-gray-500 truncate">{userData.email}</p>
                       </div>
-                      {userLinks.map((link) =>
+                      {userLinks.map((link, index) =>
                         link.action ? (
                           <button
-                            key={link.name}
+                            key={`user-link-${index}`}
                             onClick={link.action}
                             className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           >
@@ -204,7 +207,7 @@ const Header = () => {
                           </button>
                         ) : (
                           <Link
-                            key={link.name}
+                            key={`user-link-${index}`}
                             href={link.href}
                             onClick={() => {
                               setIsProfileMenuOpen(false)
@@ -244,6 +247,8 @@ const Header = () => {
           <button
             className="md:hidden p-2 text-white hover:text-celestial focus:outline-none"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-expanded={isMobileMenuOpen}
+            aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
           >
             {isMobileMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
           </button>
@@ -253,9 +258,9 @@ const Header = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden bg-ciscoDarkBlue pb-4 px-4 rounded-b-lg shadow-xl">
             <div className="flex flex-col space-y-2">
-              {navLinks.map((link) => (
+              {navLinks.map((link, index) => (
                 <Link
-                  key={link.href}
+                  key={`mobile-link-${index}`}
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`px-3 py-2 rounded-md text-sm font-medium ${pathname === link.href ? "bg-ciscoBlue text-white" : "text-white hover:bg-ciscoBlue/80"}`}
@@ -272,7 +277,8 @@ const Header = () => {
                         <div className="relative w-10 h-10">
                           <Image
                             src={userData.photo || "/placeholder.svg"}
-                            fill
+                            width={40}
+                            height={40}
                             alt="Foto de perfil"
                             className="rounded-full object-cover"
                             onError={(e) => {
@@ -290,10 +296,10 @@ const Header = () => {
                       </div>
                     </div>
 
-                    {userLinks.map((link) =>
+                    {userLinks.map((link, index) =>
                       link.action ? (
                         <button
-                          key={link.name}
+                          key={`mobile-user-link-${index}`}
                           onClick={link.action}
                           className="w-full text-left px-3 py-2 text-sm font-medium text-white hover:bg-ciscoBlue/80 rounded-md"
                         >
@@ -301,7 +307,7 @@ const Header = () => {
                         </button>
                       ) : (
                         <Link
-                          key={link.name}
+                          key={`mobile-user-link-${index}`}
                           href={link.href}
                           onClick={() => setIsMobileMenuOpen(false)}
                           className="block px-3 py-2 text-sm font-medium text-white hover:bg-ciscoBlue/80 rounded-md"

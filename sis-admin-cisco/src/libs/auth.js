@@ -7,27 +7,34 @@ export async function verifyAdminToken(request) {
   try {
     // Obtener token de la cookie
     const cookieStore = cookies()
-    const token = cookieStore.get("authToken")?.value
+    const authCookie = await cookieStore.get("authToken")
+    const token = authCookie?.value
 
     if (!token) {
-      return null
+      return { success: false, error: "Token no encontrado" }
     }
 
     // Verificar token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-
-    // Verificar si el usuario existe y es administrador
-    const [user] = await db.query("SELECT id, email, rol FROM usuario WHERE id = ? AND rol = 'admin' AND activo = 1", [
-      decoded.id,
-    ])
-
-    if (!user) {
-      return null
+    let decoded
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET)
+    } catch (err) {
+      return { success: false, error: "Token inválido" }
     }
 
-    return user
+    // Verificar si el usuario existe y es administrador
+    const [user] = await db.query(
+      "SELECT id, email, rol FROM usuario WHERE id = ? AND rol = 'admin' AND activo = 1",
+      [decoded.id]
+    )
+
+    if (!user) {
+      return { success: false, error: "Usuario no autorizado" }
+    }
+
+    return { success: true, user }
   } catch (error) {
     console.error("Error al verificar token de administrador:", error)
-    return null
+    return { success: false, error: "Error interno de autenticación" }
   }
 }

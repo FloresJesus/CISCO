@@ -60,6 +60,8 @@ export const AuthProvider = ({ children }) => {
       setUser(null)
       // Redirigir a la página de inicio después de cerrar sesión
       router.push("/")
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error)
     } finally {
       setLoading(false)
     }
@@ -70,9 +72,9 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         loading,
-        login,
         logout,
         isAuthenticated: !!user,
+        login,
       }}
     >
       {children}
