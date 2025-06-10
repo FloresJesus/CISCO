@@ -191,12 +191,7 @@ export default function ParalelosList({ cursoId, cursoNombre }) {
                   >
                     Fechas
                   </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Modalidad
-                  </th>
+
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -237,13 +232,7 @@ export default function ParalelosList({ cursoId, cursoNombre }) {
                       <div className="text-sm text-gray-900">{formatDate(paralelo.fecha_inicio)}</div>
                       <div className="text-xs text-gray-500">hasta {formatDate(paralelo.fecha_fin)}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getModalidadBadgeClass(paralelo.modalidad)}`}
-                      >
-                        {paralelo.modalidad}
-                      </span>
-                    </td>
+
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getEstadoBadgeClass(paralelo.estado)}`}

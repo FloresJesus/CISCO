@@ -6,7 +6,7 @@ export async function GET(request, { params }) {
     const inscripcionId = params.id
 
     // Obtener datos de la inscripción
-    const inscripcion = await query(
+    const [inscripcion] = await query(
       `
       SELECT 
         i.id,
@@ -131,7 +131,7 @@ export async function GET(request, { params }) {
       resumen_asistencia,
     }
 
-    return NextResponse.json({inscripcionCompleta})
+    return NextResponse.json(inscripcionCompleta)
   } catch (error) {
     console.error(`Error al obtener inscripción ${params.id}:`, error)
     return NextResponse.json({ error: "Error al obtener inscripción" }, { status: 500 })

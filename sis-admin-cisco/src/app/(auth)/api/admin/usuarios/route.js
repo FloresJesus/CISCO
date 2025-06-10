@@ -33,7 +33,7 @@ export async function GET(request) {
         COALESCE(e.estado, i.estado) AS estado
       FROM usuario u
       LEFT JOIN estudiante e ON u.id = e.usuario_id AND u.rol = 'estudiante'
-      LEFT JOIN instructor i ON u.id = i.usuario_id AND u.rol = 'instructor'
+      LEFT JOIN instructor i ON u.id = i.usuario_id
     `
 
     let countQuery = `SELECT COUNT(*) as total FROM usuario u`
@@ -126,6 +126,7 @@ export async function POST(request) {
     }
 
     const data = await request.json()
+    console.log(data);
     const { email, password, rol, nombre, apellido, telefono, especialidad = null, biografia = null } = data
 
     // Validaciones básicas
@@ -165,8 +166,12 @@ export async function POST(request) {
           "INSERT INTO instructor (usuario_id, nombre, apellido, email, telefono, especialidad, biografia) VALUES (?, ?, ?, ?, ?, ?, ?)",
           [userId, nombre, apellido, email.toLowerCase(), telefono || null, especialidad, biografia],
         )
+      } else if (rol === "admin") {
+        await db.query(
+            "INSERT INTO instructor (usuario_id, nombre, apellido, email, telefono) VALUES (?, ?, ?, ?, ?)",
+            [userId, nombre, apellido, email.toLowerCase(), telefono || null],
+        )
       }
-
       // Registrar en el log del sistema
       await db.query(
         "INSERT INTO log_sistema (usuario_id, accion, entidad, entidad_id, detalles) VALUES (?, ?, ?, ?, ?)",

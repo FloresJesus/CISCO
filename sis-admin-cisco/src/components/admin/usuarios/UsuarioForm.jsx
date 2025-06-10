@@ -77,7 +77,7 @@ export default function UsuarioForm({ usuario = null, rolPredeterminado = null }
         }else if (formData.rol === "instructor") {
           router.push("/admin/usuarios/instructores")
         }else if (formData.rol === "admin") {
-          router.push("/admin/usuarios/admins")
+          router.push("/admin/usuarios/administradores")
         }
       }
     } catch (err) {

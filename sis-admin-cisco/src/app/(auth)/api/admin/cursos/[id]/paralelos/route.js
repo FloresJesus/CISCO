@@ -34,7 +34,6 @@ export async function GET(request, { params }) {
       `,
       [id],
     )
-    console.log(paralelos)
     return NextResponse.json(paralelos)
   } catch (error) {
     console.error(`Error al obtener paralelos para el curso ${params.id}:`, error)
@@ -67,7 +66,7 @@ export async function POST(request, { params }) {
     }
 
     // Insertar nuevo paralelo
-    const result = await query(
+    const result = await db.query(
       `
       INSERT INTO paralelo (
         curso_id,
@@ -97,7 +96,7 @@ export async function POST(request, { params }) {
     )
 
     // Obtener el paralelo recién creado
-    const [nuevoParalelo] = await query(
+    const [nuevoParalelo] = await db.query(
       `
       SELECT 
         p.id, 
