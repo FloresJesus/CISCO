@@ -3,7 +3,18 @@ import { useState, useEffect, useRef } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { FaBars, FaTimes, FaUserCircle, FaChevronDown, FaSearch, FaBell } from "react-icons/fa"
+import {
+  FaBars,
+  FaTimes,
+  FaUserCircle,
+  FaChevronDown,
+  FaSearch,
+  FaBell,
+  FaHome,
+  FaBook,
+  FaCertificate,
+  FaChartBar,
+} from "react-icons/fa"
 import { useAuth } from "@/components/auth/AuthProvider"
 
 const Header = () => {
@@ -56,27 +67,61 @@ const Header = () => {
   }
 
   // Enlaces de navegación basados en el rol del usuario
-  const navLinks = [
-    { name: "Inicio", href: "/" },
-    { name: "Cursos", href: "/cursos" },
-    ...(user?.rol === "admin" ? [{ name: "Admin", href: "/admin" }] : []),
-    ...(user?.rol === "instructor" ? [{ name: "Instructor", href: "/instructor" }] : []),
-  ]
+  const getNavLinks = () => {
+    if (user?.rol === "estudiante") {
+      return [
+        { name: "Dashboard", href: "/estudiante/dashboard", icon: FaHome },
+        { name: "Mis Cursos", href: "/estudiante/cursos", icon: FaBook },
+        { name: "Certificados", href: "/estudiante/certificados", icon: FaCertificate },
+        { name: "Calificaciones", href: "/estudiante/calificaciones", icon: FaChartBar },
+      ]
+    }
+
+    return [
+      { name: "Inicio", href: "/" },
+      { name: "Cursos", href: "/cursos" },
+      ...(user?.rol === "admin" ? [{ name: "Admin", href: "/admin" }] : []),
+      ...(user?.rol === "instructor" ? [{ name: "Instructor", href: "/instructor" }] : []),
+    ]
+  }
+
+  const navLinks = getNavLinks()
 
   // Enlaces del menú de usuario
-  const userLinks = [
-    { name: "Mi Perfil", href: "/perfil" },
-    { name: "Configuración", href: "/configuracion" },
-    ...(user?.rol === "estudiante" ? [{ name: "Mis Cursos", href: "/mis-cursos" }] : []),
-    {
-      name: "Cerrar Sesión",
-      action: () => {
-        logout()
-        setIsProfileMenuOpen(false)
-        setIsMobileMenuOpen(false)
+  const getUserLinks = () => {
+    if (user?.rol === "estudiante") {
+      return [
+        { name: "Mi Perfil", href: "/estudiante/perfil" },
+        { name: "Configuración", href: "/estudiante/configuracion" },
+        { name: "Mis Pagos", href: "/estudiante/pagos" },
+        { name: "Asistencias", href: "/estudiante/asistencias" },
+        {
+          name: "Cerrar Sesión",
+          action: () => {
+            logout()
+            setIsProfileMenuOpen(false)
+            setIsMobileMenuOpen(false)
+          },
+        },
+      ]
+    }
+
+    return [
+      { name: "Mi Perfil", href: "/perfil" },
+      { name: "Configuración", href: "/configuracion" },
+      ...(user?.rol === "estudiante" ? [{ name: "Mis Cursos", href: "/mis-cursos" }] : []),
+      {
+        name: "Cerrar Sesión",
+        action: () => {
+          logout()
+          setIsProfileMenuOpen(false)
+          setIsMobileMenuOpen(false)
+        },
       },
-    },
-  ]
+    ]
+  }
+
+  const userLinks = getUserLinks()
 
   // Función para obtener datos del usuario para mostrar
   const getUserDisplayData = () => {
@@ -112,7 +157,11 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center" onClick={() => setIsMobileMenuOpen(false)}>
+          <Link
+            href={user?.rol === "estudiante" ? "/estudiante/dashboard" : "/"}
+            className="flex items-center"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
             <Image src="/images/logo3.png" width={120} height={40} alt="Logo" className="h-10 w-auto" priority />
           </Link>
 
@@ -122,9 +171,12 @@ const Header = () => {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium ${pathname === link.href ? "text-celestial" : "text-white hover:text-celestial"}`}
+                className={`flex items-center gap-2 text-sm font-medium transition-colors ${
+                  pathname === link.href ? "text-celestial" : "text-white hover:text-celestial"
+                }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
+                {link.icon && <link.icon size={16} />}
                 {link.name}
               </Link>
             ))}
@@ -136,10 +188,10 @@ const Header = () => {
               <>
                 <button
                   onClick={() => {
-                    router.push("/busqueda")
+                    router.push(user?.rol === "estudiante" ? "/estudiante/buscar" : "/busqueda")
                     setIsMobileMenuOpen(false)
                   }}
-                  className="p-2 text-white hover:text-celestial"
+                  className="p-2 text-white hover:text-celestial transition-colors"
                   aria-label="Buscar"
                 >
                   <FaSearch size={16} />
@@ -147,10 +199,10 @@ const Header = () => {
 
                 <button
                   onClick={() => {
-                    router.push("/notificaciones")
+                    router.push(user?.rol === "estudiante" ? "/estudiante/notificaciones" : "/notificaciones")
                     setIsMobileMenuOpen(false)
                   }}
-                  className="p-2 text-white hover:text-celestial relative"
+                  className="p-2 text-white hover:text-celestial relative transition-colors"
                   aria-label="Notificaciones"
                 >
                   <FaBell size={16} />
@@ -160,12 +212,12 @@ const Header = () => {
                 <div className="relative" ref={profileMenuRef}>
                   <button
                     onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                    className="flex items-center space-x-2 focus:outline-none"
+                    className="flex items-center space-x-2 focus:outline-none hover:bg-primary-dark/50 rounded-lg px-2 py-1 transition-colors"
                     aria-expanded={isProfileMenuOpen}
                     aria-haspopup="true"
                   >
                     {userData.photo ? (
-                      <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
+                      <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-celestial/30">
                         <Image
                           src={userData.photo || "/placeholder.svg"}
                           width={32}
@@ -179,8 +231,8 @@ const Header = () => {
                         />
                       </div>
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                        <FaUserCircle size={24} className="text-gray-500" />
+                      <div className="w-8 h-8 rounded-full bg-celestial/20 flex items-center justify-center">
+                        <FaUserCircle size={24} className="text-celestial" />
                       </div>
                     )}
                     <span className="text-sm font-medium text-white max-w-[120px] truncate">{userData.name}</span>
@@ -191,17 +243,20 @@ const Header = () => {
                   </button>
 
                   {isProfileMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                      <div className="px-4 py-2 border-b">
-                        <p className="text-sm font-medium text-gray-900 truncate">{userData.name}</p>
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 z-50 border border-gray-100">
+                      <div className="px-4 py-3 border-b border-gray-100">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{userData.name}</p>
                         <p className="text-xs text-gray-500 truncate">{userData.email}</p>
+                        {user?.rol === "estudiante" && (
+                          <p className="text-xs text-celestial font-medium mt-1">Estudiante</p>
+                        )}
                       </div>
                       {userLinks.map((link, index) =>
                         link.action ? (
                           <button
                             key={`user-link-${index}`}
                             onClick={link.action}
-                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                           >
                             {link.name}
                           </button>
@@ -213,7 +268,7 @@ const Header = () => {
                               setIsProfileMenuOpen(false)
                               setIsMobileMenuOpen(false)
                             }}
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                           >
                             {link.name}
                           </Link>
@@ -227,14 +282,14 @@ const Header = () => {
               <>
                 <Link
                   href="/login"
-                  className="text-sm font-medium text-white hover:text-celestial"
+                  className="text-sm font-medium text-white hover:text-celestial transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Iniciar Sesión
                 </Link>
                 <Link
                   href="/register"
-                  className="text-sm font-medium text-white bg-celestial hover:bg-ciscoBlue px-4 py-2 rounded-md"
+                  className="text-sm font-medium text-white bg-celestial hover:bg-ciscoBlue px-4 py-2 rounded-md transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Registrarse
@@ -245,7 +300,7 @@ const Header = () => {
 
           {/* Botón Mobile */}
           <button
-            className="md:hidden p-2 text-white hover:text-celestial focus:outline-none"
+            className="md:hidden p-2 text-white hover:text-celestial focus:outline-none transition-colors"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-expanded={isMobileMenuOpen}
             aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
@@ -263,24 +318,27 @@ const Header = () => {
                   key={`mobile-link-${index}`}
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${pathname === link.href ? "bg-ciscoBlue text-white" : "text-white hover:bg-ciscoBlue/80"}`}
+                  className={`flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors ${
+                    pathname === link.href ? "bg-ciscoBlue text-white" : "text-white hover:bg-ciscoBlue/80"
+                  }`}
                 >
+                  {link.icon && <link.icon size={18} />}
                   {link.name}
                 </Link>
               ))}
 
-              <div className="border-t border-celestial/20 pt-2 mt-2">
+              <div className="border-t border-celestial/20 pt-4 mt-4">
                 {isAuthenticated ? (
                   <>
-                    <div className="px-3 py-2 flex items-center gap-3 mb-2">
+                    <div className="px-3 py-3 flex items-center gap-3 mb-3 bg-primary/30 rounded-lg">
                       {userData.photo ? (
-                        <div className="relative w-10 h-10">
+                        <div className="relative w-12 h-12">
                           <Image
                             src={userData.photo || "/placeholder.svg"}
-                            width={40}
-                            height={40}
+                            width={48}
+                            height={48}
                             alt="Foto de perfil"
-                            className="rounded-full object-cover"
+                            className="rounded-full object-cover border-2 border-celestial/30"
                             onError={(e) => {
                               e.target.onerror = null
                               e.target.src = "/images/default-avatar.png"
@@ -288,11 +346,16 @@ const Header = () => {
                           />
                         </div>
                       ) : (
-                        <FaUserCircle size={32} className="text-white" />
+                        <div className="w-12 h-12 rounded-full bg-celestial/20 flex items-center justify-center">
+                          <FaUserCircle size={32} className="text-celestial" />
+                        </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">{userData.name}</p>
+                        <p className="text-sm font-semibold text-white truncate">{userData.name}</p>
                         <p className="text-xs text-white/80 truncate">{userData.email}</p>
+                        {user?.rol === "estudiante" && (
+                          <p className="text-xs text-celestial font-medium mt-1">Estudiante</p>
+                        )}
                       </div>
                     </div>
 
@@ -301,7 +364,7 @@ const Header = () => {
                         <button
                           key={`mobile-user-link-${index}`}
                           onClick={link.action}
-                          className="w-full text-left px-3 py-2 text-sm font-medium text-white hover:bg-ciscoBlue/80 rounded-md"
+                          className="w-full text-left px-3 py-2 text-sm font-medium text-white hover:bg-ciscoBlue/80 rounded-md transition-colors"
                         >
                           {link.name}
                         </button>
@@ -310,7 +373,7 @@ const Header = () => {
                           key={`mobile-user-link-${index}`}
                           href={link.href}
                           onClick={() => setIsMobileMenuOpen(false)}
-                          className="block px-3 py-2 text-sm font-medium text-white hover:bg-ciscoBlue/80 rounded-md"
+                          className="block px-3 py-2 text-sm font-medium text-white hover:bg-ciscoBlue/80 rounded-md transition-colors"
                         >
                           {link.name}
                         </Link>
@@ -322,14 +385,14 @@ const Header = () => {
                     <Link
                       href="/login"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="block px-3 py-2 text-sm font-medium text-white hover:bg-ciscoBlue/80 rounded-md"
+                      className="block px-3 py-2 text-sm font-medium text-white hover:bg-ciscoBlue/80 rounded-md transition-colors"
                     >
                       Iniciar Sesión
                     </Link>
                     <Link
                       href="/register"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="block px-3 py-2 text-sm font-medium text-white bg-celestial hover:bg-ciscoBlue rounded-md"
+                      className="block px-3 py-2 text-sm font-medium text-white bg-celestial hover:bg-ciscoBlue rounded-md transition-colors"
                     >
                       Registrarse
                     </Link>

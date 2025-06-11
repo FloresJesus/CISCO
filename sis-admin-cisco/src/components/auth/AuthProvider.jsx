@@ -42,9 +42,9 @@ export const AuthProvider = ({ children }) => {
       // Redirigir según el rol después del login exitoso
       if (data?.user?.rol === "admin") {
         router.push("/admin")
-      } else {
+      } else if (data?.user?.rol === "estudiante") {
         // Redirigir a la página principal o a la página anterior si no es admin
-        router.push("/")
+        router.push("/estudiante/dashboard")
       }
 
       return data
