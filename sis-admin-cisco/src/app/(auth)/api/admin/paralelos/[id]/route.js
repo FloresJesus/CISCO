@@ -1,118 +1,198 @@
 import { NextResponse } from "next/server"
-import db from "@/libs/db"
+import { query } from "@/libs/db"
+import { verifyAdminToken } from "@/libs/auth"
 
-// Obtener un paralelo específico
 export async function GET(request, { params }) {
   try {
+    // Verificar autenticación
+    const authResult = await verifyAdminToken(request)
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: 401 })
+    }
+
     const { id } = params
 
-    const query = `
-      SELECT 
+    // Obtener detalles del paralelo
+    const paralelo = await query(
+      `SELECT 
         p.*,
         c.nombre AS curso_nombre,
-        c.codigo AS curso_codigo,
+        c.descripcion AS curso_descripcion,
         i.nombre AS instructor_nombre,
         i.apellido AS instructor_apellido,
+        i.email AS instructor_email,
         (SELECT COUNT(*) FROM inscripcion WHERE paralelo_id = p.id) AS total_inscritos
       FROM paralelo p
-      JOIN curso c ON p.curso_id = c.id
-      JOIN instructor i ON p.instructor_id = i.id
-      WHERE p.id = ?
-    `
+      LEFT JOIN curso c ON p.curso_id = c.id
+      LEFT JOIN instructor i ON p.instructor_id = i.id
+      WHERE p.id = ?`,
+      [id],
+    )
 
-    const [paralelo] = await db.query(query, [id])
-
-    if (!paralelo.length) {
+    if (paralelo.length === 0) {
       return NextResponse.json({ error: "Paralelo no encontrado" }, { status: 404 })
     }
 
-    return NextResponse.json(paralelo[0])
+    return NextResponse.json({ paralelo: paralelo[0] })
   } catch (error) {
-    console.error("Error al obtener el paralelo:", error)
+    console.error("Error al obtener paralelo:", error)
     return NextResponse.json({ error: "Error al obtener el paralelo" }, { status: 500 })
   }
 }
 
-// Actualizar un paralelo
 export async function PUT(request, { params }) {
   try {
+    // Verificar autenticación
+    const authResult = await verifyAdminToken(request)
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: 401 })
+    }
+
     const { id } = params
     const data = await request.json()
 
     // Verificar que el paralelo existe
-    const [existingParalelo] = await db.query("SELECT * FROM paralelo WHERE id = ?", [id])
+    const existingParalelo = await query("SELECT id FROM paralelo WHERE id = ?", [id])
 
-    if (!existingParalelo.length) {
+    if (existingParalelo.length === 0) {
       return NextResponse.json({ error: "Paralelo no encontrado" }, { status: 404 })
     }
 
-    // Actualizar el paralelo
-    const updateQuery = `
-      UPDATE paralelo SET
-        codigo_paralelo = ?,
-        nombre_paralelo = ?,
-        instructor_id = ?,
-        fecha_inicio = ?,
-        fecha_fin = ?,
-        horario = ?,
-        modalidad = ?,
-        ubicacion = ?,
-        max_estudiantes = ?,
-        estado = ?,
-        descripcion = ?
-      WHERE id = ?
-    `
+    // Verificar código único (excluyendo el paralelo actual)
+    if (data.codigo_paralelo) {
+      const duplicateCode = await query("SELECT id FROM paralelo WHERE codigo_paralelo = ? AND id != ?", [
+        data.codigo_paralelo,
+        id,
+      ])
 
-    await db.query(updateQuery, [
-      data.codigo_paralelo,
-      data.nombre_paralelo,
-      data.instructor_id,
-      data.fecha_inicio,
-      data.fecha_fin,
-      data.horario,
-      data.modalidad,
-      data.ubicacion,
-      data.max_estudiantes,
-      data.estado,
-      data.descripcion,
-      id,
-    ])
+      if (duplicateCode.length > 0) {
+        return NextResponse.json({ error: "Ya existe un paralelo con este código" }, { status: 400 })
+      }
+    }
 
-    return NextResponse.json({ message: "Paralelo actualizado correctamente" })
+    // Construir la consulta de actualización dinámicamente
+    const updateFields = []
+    const updateValues = []
+
+    const allowedFields = [
+      "curso_id",
+      "instructor_id",
+      "codigo_paralelo",
+      "nombre_paralelo",
+      "fecha_inicio",
+      "fecha_fin",
+      "horario",
+      "aula",
+      "estado",
+      "max_estudiantes",
+    ]
+
+    allowedFields.forEach((field) => {
+      if (data[field] !== undefined) {
+        updateFields.push(`${field} = ?`)
+        updateValues.push(data[field])
+      }
+    })
+
+    if (updateFields.length === 0) {
+      return NextResponse.json({ error: "No hay campos para actualizar" }, { status: 400 })
+    }
+
+    // Añadir el ID al final para la cláusula WHERE
+    updateValues.push(id)
+
+    // Ejecutar la actualización
+    await query(`UPDATE paralelo SET ${updateFields.join(", ")} WHERE id = ?`, updateValues)
+
+    // Registrar la acción en el log del sistema
+    await query(
+      `INSERT INTO log_sistema (
+        usuario_id,
+        accion,
+        entidad,
+        entidad_id,
+        detalles,
+        ip_address
+      ) VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        authResult.user.id,
+        "actualizar",
+        "paralelo",
+        id,
+        JSON.stringify({
+          mensaje: `Paralelo ID ${id} actualizado`,
+          datos: data,
+        }),
+        request.headers.get("x-forwarded-for") || "unknown",
+      ],
+    )
+
+    return NextResponse.json({
+      message: "Paralelo actualizado exitosamente",
+    })
   } catch (error) {
-    console.error("Error al actualizar el paralelo:", error)
+    console.error("Error al actualizar paralelo:", error)
     return NextResponse.json({ error: "Error al actualizar el paralelo" }, { status: 500 })
   }
 }
 
-// Eliminar un paralelo
 export async function DELETE(request, { params }) {
   try {
+    // Verificar autenticación
+    const authResult = await verifyAdminToken(request)
+    if (!authResult.success) {
+      return NextResponse.json({ error: authResult.error }, { status: 401 })
+    }
+
     const { id } = params
 
     // Verificar que el paralelo existe
-    const [existingParalelo] = await db.query("SELECT * FROM paralelo WHERE id = ?", [id])
+    const existingParalelo = await query("SELECT id, nombre_paralelo FROM paralelo WHERE id = ?", [id])
 
-    if (!existingParalelo.length) {
+    if (existingParalelo.length === 0) {
       return NextResponse.json({ error: "Paralelo no encontrado" }, { status: 404 })
     }
 
-    // Verificar si hay inscripciones asociadas
-    const [inscripciones] = await db.query("SELECT COUNT(*) AS total FROM inscripcion WHERE paralelo_id = ?", [id])
+    // Verificar si hay inscripciones activas
+    const activeInscriptions = await query(
+      "SELECT COUNT(*) as count FROM inscripcion WHERE paralelo_id = ? AND estado = 'activa'",
+      [id],
+    )
 
-    if (inscripciones[0].total > 0) {
-      return NextResponse.json(
-        { error: "No se puede eliminar el paralelo porque tiene estudiantes inscritos" },
-        { status: 400 },
-      )
+    if (activeInscriptions[0].count > 0) {
+      return NextResponse.json({ error: "No se puede eliminar un paralelo con inscripciones activas" }, { status: 400 })
     }
 
     // Eliminar el paralelo
-    await db.query("DELETE FROM paralelo WHERE id = ?", [id])
+    await query("DELETE FROM paralelo WHERE id = ?", [id])
 
-    return NextResponse.json({ message: "Paralelo eliminado correctamente" })
+    // Registrar la acción en el log del sistema
+    await query(
+      `INSERT INTO log_sistema (
+        usuario_id,
+        accion,
+        entidad,
+        entidad_id,
+        detalles,
+        ip_address
+      ) VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        authResult.user.id,
+        "eliminar",
+        "paralelo",
+        id,
+        JSON.stringify({
+          mensaje: `Paralelo ID ${id} (${existingParalelo[0].nombre_paralelo}) eliminado`,
+        }),
+        request.headers.get("x-forwarded-for") || "unknown",
+      ],
+    )
+
+    return NextResponse.json({
+      message: "Paralelo eliminado exitosamente",
+    })
   } catch (error) {
-    console.error("Error al eliminar el paralelo:", error)
+    console.error("Error al eliminar paralelo:", error)
     return NextResponse.json({ error: "Error al eliminar el paralelo" }, { status: 500 })
   }
 }

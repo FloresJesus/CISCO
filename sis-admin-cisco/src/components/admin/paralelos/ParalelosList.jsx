@@ -36,7 +36,13 @@ export default function ParalelosList({ cursoId, cursoNombre }) {
         params.append("estado", filtroEstado)
       }
 
+      // Añadir el cursoId a los parámetros si está disponible
+      if (cursoId) {
+        params.append("cursoId", cursoId)
+      }
+
       const { data } = await api.get(`/admin/paralelos?${params.toString()}`)
+      console.log("Datos de paralelos:", data) // Para depuración
       setParalelos(data.paralelos)
       setPagination((prev) => ({
         ...prev,
@@ -53,7 +59,7 @@ export default function ParalelosList({ cursoId, cursoNombre }) {
 
   useEffect(() => {
     fetchParalelos()
-  }, [pagination.page, pagination.limit, filtroEstado])
+  }, [pagination.page, pagination.limit, filtroEstado, cursoId]) // Añadido cursoId como dependencia
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -96,25 +102,12 @@ export default function ParalelosList({ cursoId, cursoNombre }) {
     }
   }
 
-  const getModalidadBadgeClass = (modalidad) => {
-    switch (modalidad) {
-      case "presencial":
-        return "bg-blue-100 text-blue-800"
-      case "virtual":
-        return "bg-purple-100 text-purple-800"
-      case "hibrido":
-        return "bg-teal-100 text-teal-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
-
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-800">Paralelos del Curso</h2>
-          <p className="text-gray-600">{cursoNombre}</p>
+          {cursoNombre && <p className="text-gray-600">{cursoNombre}</p>}
         </div>
 
         <div className="flex flex-col md:flex-row gap-3">
@@ -150,7 +143,9 @@ export default function ParalelosList({ cursoId, cursoNombre }) {
             </select>
 
             <button
-              onClick={() => router.push(`/admin/cursos/paralelos/nuevo`)}
+              onClick={() =>
+                router.push(cursoId ? `/admin/cursos/${cursoId}/paralelos/nuevo` : `/admin/cursos/paralelos/nuevo`)
+              }
               className="bg-ciscoBlue text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-ciscoDarkBlue transition-colors"
             >
               <FaPlus /> Nuevo
@@ -166,7 +161,11 @@ export default function ParalelosList({ cursoId, cursoNombre }) {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ciscoBlue"></div>
         </div>
       ) : paralelos.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">No se encontraron paralelos con los criterios de búsqueda.</div>
+        <div className="text-center py-8 text-gray-500">
+          {cursoId
+            ? "No se encontraron paralelos para este curso."
+            : "No se encontraron paralelos con los criterios de búsqueda."}
+        </div>
       ) : (
         <>
           <div className="overflow-x-auto">

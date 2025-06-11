@@ -126,7 +126,6 @@ export async function POST(request) {
     }
 
     const data = await request.json()
-    console.log(data);
     const { email, password, rol, nombre, apellido, telefono, especialidad = null, biografia = null } = data
 
     // Validaciones básicas
