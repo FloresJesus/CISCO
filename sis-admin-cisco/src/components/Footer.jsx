@@ -1,10 +1,14 @@
 'use client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FaFacebook, FaTwitter, FaLinkedin, FaYoutube, FaInstagram, FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from 'react-icons/fa'
+import { useAuth } from '@/components/auth/AuthProvider'
+import { FaFacebook, FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from 'react-icons/fa'
 
 export default function Footer() {
+  const { user, loading, logout, isAuthenticated } = useAuth()
   const currentYear = new Date().getFullYear()
+
+  if(isAuthenticated) return null; // No mostrar el footer si el usuario está autenticado
 
   const quickLinks = [
     { name: 'Inicio', href: '/' },
