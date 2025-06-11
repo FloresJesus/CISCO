@@ -141,14 +141,6 @@ export default function ParalelosList({ cursoId, cursoNombre }) {
               <option value="completado">Completado</option>
               <option value="cancelado">Cancelado</option>
             </select>
-            <button
-              onClick={() =>
-                router.push(cursoId ? `/admin/cursos/${cursoId}/paralelos/nuevo` : `/admin/cursos/paralelos/nuevo`)
-              }
-              className="bg-ciscoBlue text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-ciscoDarkBlue transition-colors"
-            >
-              <FaPlus /> Nuevo
-            </button>
           </div>
         </div>
       </div>
