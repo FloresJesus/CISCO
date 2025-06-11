@@ -11,6 +11,7 @@ import {
   FaClock,
   FaChalkboardTeacher,
   FaPlus,
+  FaEye,
 } from "react-icons/fa"
 import api from "@/libs/api"
 import { formatDate } from "@/libs/utils"
@@ -32,7 +33,6 @@ export default function ParaleloDetail({ paralelo: initialParalelo }) {
     setError(null)
     try {
       const { data } = await api.get(`/admin/paralelos/${initialParalelo.id}`)
-
       if (!data || Object.keys(data).length === 0) {
         console.error("API devolvió datos vacíos o inválidos", data)
         setError("La API devolvió datos vacíos o inválidos. Por favor, intenta de nuevo.")
@@ -320,7 +320,7 @@ export default function ParaleloDetail({ paralelo: initialParalelo }) {
                   <div className="bg-green-50 p-4 rounded-lg">
                     <p className="text-sm text-green-500 mb-1">Calificación Promedio</p>
                     <p className="text-2xl font-bold text-green-700">
-                      {paraleloData.estadisticas?.calificacion_promedio || 0}/10
+                      {paraleloData.estadisticas?.calificacion_promedio || 0}/100
                     </p>
                   </div>
                   <div className="bg-yellow-50 p-4 rounded-lg">
@@ -435,10 +435,11 @@ export default function ParaleloDetail({ paralelo: initialParalelo }) {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <button
-                            onClick={() => router.push(`/admin/inscripciones/${estudiante.inscripcion_id}`)}
+                            onClick={() => router.push(`/admin/academico/inscripciones/${estudiante.inscripcion_id}`)}
                             className="text-indigo-600 hover:text-indigo-900 mr-3"
+                            title="ver detalles de inscripción"
                           >
-                            Ver
+                            <FaEye />
                           </button>
                         </td>
                       </tr>

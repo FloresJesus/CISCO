@@ -19,6 +19,7 @@ export default function UsuarioForm({ usuario = null, rolPredeterminado = null }
     telefono: "",
     especialidad: "",
     biografia: "",
+    tipo_estudiante: "externo", // Añadir este campo
     activo: true,
   })
 
@@ -37,6 +38,7 @@ export default function UsuarioForm({ usuario = null, rolPredeterminado = null }
         telefono: usuario.detalles?.telefono || "",
         especialidad: usuario.detalles?.especialidad || "",
         biografia: usuario.detalles?.biografia || "",
+        tipo_estudiante: usuario.detalles?.tipo_estudiante || "externo", // Añadir este campo
         activo: usuario.activo,
       })
     }
@@ -189,6 +191,27 @@ export default function UsuarioForm({ usuario = null, rolPredeterminado = null }
               className="w-full px-3 py-2 border rounded-lg focus:ring-ciscoBlue focus:border-ciscoBlue"
             />
           </div>
+
+          {formData.rol === "estudiante" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tipo de Estudiante <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="tipo_estudiante"
+                value={formData.tipo_estudiante}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-ciscoBlue focus:border-ciscoBlue"
+                required
+              >
+                <option value="externo">Externo</option>
+                <option value="interno">Interno</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Interno: Estudiante de la institución | Externo: Estudiante externo a la institución
+              </p>
+            </div>
+          )}
 
           {formData.rol === "instructor" && (
             <>

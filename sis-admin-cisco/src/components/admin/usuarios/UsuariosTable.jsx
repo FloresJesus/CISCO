@@ -113,6 +113,20 @@ export default function UsuariosTable({ rolFiltro = "", titulo = "Gestión de Us
     }
   }
 
+  const getTipoEstudianteBadgeClass = (tipo) => {
+    switch (tipo) {
+      case "interno":
+        return "bg-purple-100 text-purple-800"
+      case "externo":
+        return "bg-orange-100 text-orange-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
+  }
+
+  // Determinar si mostrar la columna de tipo de estudiante
+  const mostrarColumnaEstudiante = filtroRol === "estudiante" || usuarios.some((u) => u.rol === "estudiante")
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
@@ -203,6 +217,14 @@ export default function UsuariosTable({ rolFiltro = "", titulo = "Gestión de Us
                   >
                     Rol
                   </th>
+                  {mostrarColumnaEstudiante && (
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Tipo
+                    </th>
+                  )}
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -245,6 +267,21 @@ export default function UsuariosTable({ rolFiltro = "", titulo = "Gestión de Us
                         {usuario.rol}
                       </span>
                     </td>
+                    {mostrarColumnaEstudiante && (
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {usuario.rol === "estudiante" && usuario.tipo_estudiante ? (
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTipoEstudianteBadgeClass(
+                              usuario.tipo_estudiante,
+                            )}`}
+                          >
+                            {usuario.tipo_estudiante === "interno" ? "Interno" : "Externo"}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                    )}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getEstadoBadgeClass(usuario.estado)}`}

@@ -1,223 +1,228 @@
 import { NextResponse } from "next/server"
-import { verifyAdminToken } from "@/libs/auth"
-import { query, queryWithPagination } from "@/libs/db"
+import db from "@/libs/db"
 
 export async function GET(request, { params }) {
   try {
-    // Verificar autenticación de administrador
-    const authResult = await verifyAdminToken(request)
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: 401 })
-    }
-
-    const { id: paraleloId } = params
+    const { id } = params
     const { searchParams } = new URL(request.url)
+    const page = Number.parseInt(searchParams.get("page") || "1")
+    const limit = Number.parseInt(searchParams.get("limit") || "10")
+    const query = searchParams.get("query") || ""
+    const tipoEstudiante = searchParams.get("tipo_estudiante") || ""
+    const estado = searchParams.get("estado") || ""
 
-    const page = Number.parseInt(searchParams.get("page")) || 1
-    const limit = Number.parseInt(searchParams.get("limit")) || 10
-    const searchQuery = searchParams.get("query") || ""
-    const estadoFiltro = searchParams.get("estado") || ""
+    const offset = (page - 1) * limit
 
-    // Verificar que el paralelo existe
-    const [paralelo] = await query(
-      `SELECT p.id, p.nombre_paralelo, p.codigo_paralelo, c.nombre as curso_nombre
-       FROM paralelo p
-       JOIN curso c ON p.curso_id = c.id
-       WHERE p.id = ?`,
-      [paraleloId],
-    )
-
-    if (!paralelo) {
-      return NextResponse.json({ error: "Paralelo no encontrado" }, { status: 404 })
-    }
-
-    // Construir consulta base
-    let baseQuery = `
+    // Consulta base para obtener estudiantes inscritos en el paralelo
+    let sqlQuery = `
       SELECT 
-        e.id,
+        ins.id AS inscripcion_id,
+        ins.fecha_inscripcion,
+        ins.estado AS estado_inscripcion,
+        ins.calificacion_final,
+        ins.certificado_generado,
+        e.id AS estudiante_id,
         e.nombre,
         e.apellido,
         e.email,
         e.telefono,
         e.tipo_estudiante,
         e.estado as estado_estudiante,
-        i.id as inscripcion_id,
-        i.fecha_inscripcion,
-        i.estado as estado_inscripcion,
-        i.calificacion_final,
-        i.certificado_generado,
-        i.certificado_fecha,
-        p.estado as estado_pago,
-        p.monto as monto_pago,
-        p.fecha_pago,
-        p.metodo_pago,
-        -- Calcular asistencias
-        COALESCE(asist_stats.total_clases, 0) as total_clases,
-        COALESCE(asist_stats.clases_asistidas, 0) as clases_asistidas,
+        e.fecha_registro,
+        u.ultimo_acceso,
+        COALESCE(
+          (SELECT COUNT(*) 
+           FROM asistencia a 
+           WHERE a.estudiante_id = e.id 
+           AND a.paralelo_id = ins.paralelo_id 
+           AND a.estado = 'presente'), 0
+        ) as asistencias_presentes,
+        COALESCE(
+          (SELECT COUNT(*) 
+           FROM asistencia a 
+           WHERE a.estudiante_id = e.id 
+           AND a.paralelo_id = ins.paralelo_id), 0
+        ) as total_asistencias,
         CASE 
-          WHEN COALESCE(asist_stats.total_clases, 0) > 0 
-          THEN ROUND((COALESCE(asist_stats.clases_asistidas, 0) * 100.0) / asist_stats.total_clases, 1)
-          ELSE 0 
+          WHEN (SELECT COUNT(*) FROM asistencia a WHERE a.estudiante_id = e.id AND a.paralelo_id = ins.paralelo_id) > 0
+          THEN ROUND(
+            (SELECT COUNT(*) FROM asistencia a WHERE a.estudiante_id = e.id AND a.paralelo_id = ins.paralelo_id AND a.estado = 'presente') * 100.0 /
+            (SELECT COUNT(*) FROM asistencia a WHERE a.estudiante_id = e.id AND a.paralelo_id = ins.paralelo_id), 1
+          )
+          ELSE 0
         END as porcentaje_asistencia
-      FROM inscripcion i
-      JOIN estudiante e ON i.estudiante_id = e.id
-      LEFT JOIN pago p ON i.id = p.inscripcion_id AND p.estado = 'completado'
-      LEFT JOIN (
-        SELECT 
-          estudiante_id,
-          COUNT(*) as total_clases,
-          SUM(CASE WHEN estado IN ('presente', 'tardanza') THEN 1 ELSE 0 END) as clases_asistidas
-        FROM asistencia 
-        WHERE paralelo_id = ?
-        GROUP BY estudiante_id
-      ) asist_stats ON e.id = asist_stats.estudiante_id
-      WHERE i.paralelo_id = ?
+      FROM inscripcion ins
+      JOIN estudiante e ON ins.estudiante_id = e.id
+      LEFT JOIN usuario u ON e.usuario_id = u.id
+      WHERE ins.paralelo_id = ?
     `
 
-    const queryParams = [paraleloId, paraleloId]
+    let countQuery = `
+      SELECT COUNT(*) AS total
+      FROM inscripcion ins
+      JOIN estudiante e ON ins.estudiante_id = e.id
+      WHERE ins.paralelo_id = ?
+    `
 
-    // Aplicar filtros
-    if (searchQuery) {
-      baseQuery += ` AND (e.nombre LIKE ? OR e.apellido LIKE ? OR e.email LIKE ?)`
-      const searchTerm = `%${searchQuery}%`
+    const queryParams = [id]
+    const countParams = [id]
+
+    // Filtro por búsqueda de texto
+    if (query) {
+      const searchCondition = ` AND (e.nombre LIKE ? OR e.apellido LIKE ? OR e.email LIKE ?)`
+      sqlQuery += searchCondition
+      countQuery += searchCondition
+      const searchTerm = `%${query}%`
       queryParams.push(searchTerm, searchTerm, searchTerm)
+      countParams.push(searchTerm, searchTerm, searchTerm)
     }
 
-    if (estadoFiltro) {
-      baseQuery += ` AND i.estado = ?`
-      queryParams.push(estadoFiltro)
+    // Filtro por tipo de estudiante
+    if (tipoEstudiante) {
+      const tipoCondition = ` AND e.tipo_estudiante = ?`
+      sqlQuery += tipoCondition
+      countQuery += tipoCondition
+      queryParams.push(tipoEstudiante)
+      countParams.push(tipoEstudiante)
     }
 
-    // Ordenar por fecha de inscripción
-    baseQuery += ` ORDER BY i.fecha_inscripcion DESC`
+    // Filtro por estado de inscripción
+    if (estado) {
+      const estadoCondition = ` AND ins.estado = ?`
+      sqlQuery += estadoCondition
+      countQuery += estadoCondition
+      queryParams.push(estado)
+      countParams.push(estado)
+    }
 
-    // Ejecutar consulta con paginación
-    const result = await queryWithPagination(baseQuery, queryParams, page, limit)
+    // Ordenar y paginar
+    sqlQuery += ` ORDER BY e.apellido, e.nombre LIMIT ? OFFSET ?`
+    queryParams.push(limit, offset)
 
-    // Obtener estadísticas generales del paralelo
-    const [estadisticas] = await query(
-      `SELECT 
-        COUNT(i.id) as total_inscritos,
-        COUNT(CASE WHEN i.estado = 'activo' THEN 1 END) as inscritos_activos,
-        COUNT(CASE WHEN i.estado = 'completada' THEN 1 END) as completados,
-        COUNT(CASE WHEN i.certificado_generado = 1 THEN 1 END) as certificados_emitidos,
-        AVG(CASE WHEN i.calificacion_final IS NOT NULL THEN i.calificacion_final END) as promedio_calificaciones,
-        COUNT(CASE WHEN p.estado = 'completado' THEN 1 END) as pagos_completados,
-        SUM(CASE WHEN p.estado = 'completado' THEN p.monto ELSE 0 END) as total_recaudado
-       FROM inscripcion i
-       LEFT JOIN pago p ON i.id = p.inscripcion_id
-       WHERE i.paralelo_id = ?`,
-      [paraleloId],
-    )
+    // Ejecutar consultas
+    const [estudiantes, countResult] = await Promise.all([
+      db.query(sqlQuery, queryParams),
+      db.query(countQuery, countParams),
+    ])
+
+    const total = countResult[0].total
+    const totalPages = Math.ceil(total / limit)
+
+    // Obtener estadísticas por tipo de estudiante
+    const estadisticasQuery = `
+      SELECT 
+        e.tipo_estudiante,
+        COUNT(*) as total,
+        AVG(ins.calificacion_final) as promedio_calificacion,
+        COUNT(CASE WHEN ins.calificacion_final >= 7 THEN 1 END) as aprobados,
+        COUNT(CASE WHEN ins.calificacion_final < 7 AND ins.calificacion_final IS NOT NULL THEN 1 END) as reprobados,
+        AVG(
+          CASE 
+            WHEN (SELECT COUNT(*) FROM asistencia a WHERE a.estudiante_id = e.id AND a.paralelo_id = ins.paralelo_id) > 0
+            THEN (SELECT COUNT(*) FROM asistencia a WHERE a.estudiante_id = e.id AND a.paralelo_id = ins.paralelo_id AND a.estado = 'presente') * 100.0 /
+                 (SELECT COUNT(*) FROM asistencia a WHERE a.estudiante_id = e.id AND a.paralelo_id = ins.paralelo_id)
+            ELSE 0
+          END
+        ) as promedio_asistencia
+      FROM inscripcion ins
+      JOIN estudiante e ON ins.estudiante_id = e.id
+      WHERE ins.paralelo_id = ? AND ins.estado != 'cancelada'
+      GROUP BY e.tipo_estudiante
+    `
+
+    const estadisticas = await db.query(estadisticasQuery, [id])
 
     return NextResponse.json({
-      success: true,
-      paralelo,
-      estudiantes: result.data,
-      pagination: result.pagination,
-      estadisticas: {
-        ...estadisticas,
-        promedio_calificaciones: estadisticas.promedio_calificaciones
-          ? Number.parseFloat(estadisticas.promedio_calificaciones.toFixed(2))
-          : null,
-        total_recaudado: Number.parseFloat(estadisticas.total_recaudado || 0),
+      estudiantes: estudiantes.map((est) => ({
+        ...est,
+        porcentaje_asistencia: Number.parseFloat(est.porcentaje_asistencia || 0).toFixed(1),
+      })),
+      estadisticas: estadisticas.map((stat) => ({
+        ...stat,
+        promedio_calificacion: Number.parseFloat(stat.promedio_calificacion || 0).toFixed(1),
+        promedio_asistencia: Number.parseFloat(stat.promedio_asistencia || 0).toFixed(1),
+        porcentaje_aprobacion: stat.total > 0 ? Number.parseFloat((stat.aprobados / stat.total) * 100).toFixed(1) : 0,
+      })),
+      pagination: {
+        total,
+        totalPages,
+        currentPage: page,
+        limit,
       },
     })
   } catch (error) {
     console.error("Error al obtener estudiantes del paralelo:", error)
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
+    return NextResponse.json({ error: "Error al obtener los estudiantes del paralelo" }, { status: 500 })
   }
 }
 
-// Inscribir estudiante a paralelo
 export async function POST(request, { params }) {
   try {
-    // Verificar autenticación de administrador
-    const authResult = await verifyAdminToken(request)
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: 401 })
-    }
-
-    const { id: paraleloId } = params
+    const { id } = params
     const body = await request.json()
     const { estudiante_id } = body
 
-    if (!estudiante_id) {
-      return NextResponse.json({ error: "ID del estudiante es requerido" }, { status: 400 })
+    // Verificar que el paralelo existe y tiene capacidad
+    const paraleloQuery = `
+      SELECT 
+        p.*,
+        COUNT(ins.id) as inscritos_actuales
+      FROM paralelo p
+      LEFT JOIN inscripcion ins ON p.id = ins.paralelo_id AND ins.estado != 'cancelada'
+      WHERE p.id = ?
+      GROUP BY p.id
+    `
+
+    const paraleloResult = await db.query(paraleloQuery, [id])
+
+    if (!paraleloResult || paraleloResult.length === 0) {
+      return NextResponse.json({ error: "Paralelo no encontrado" }, { status: 404 })
     }
 
-    // Verificar que el paralelo existe y no está completo
-    const [paralelo] = await query(
-      `SELECT p.*, c.costo_matricula
-       FROM paralelo p
-       JOIN curso c ON p.curso_id = c.id
-       WHERE p.id = ? AND p.estado IN ('planificado', 'en_progreso')`,
-      [paraleloId],
-    )
+    const paralelo = paraleloResult[0]
 
-    if (!paralelo) {
-      return NextResponse.json({ error: "Paralelo no encontrado o no disponible" }, { status: 404 })
-    }
-
-    // Verificar que el estudiante existe
-    const [estudiante] = await query(
-      "SELECT id, nombre, apellido, email FROM estudiante WHERE id = ? AND estado = 'activo'",
-      [estudiante_id],
-    )
-
-    if (!estudiante) {
-      return NextResponse.json({ error: "Estudiante no encontrado o inactivo" }, { status: 404 })
-    }
-
-    // Verificar que no esté ya inscrito
-    const [inscripcionExistente] = await query(
-      "SELECT id FROM inscripcion WHERE estudiante_id = ? AND paralelo_id = ?",
-      [estudiante_id, paraleloId],
-    )
-
-    if (inscripcionExistente) {
-      return NextResponse.json({ error: "El estudiante ya está inscrito en este paralelo" }, { status: 400 })
-    }
-
-    // Verificar capacidad máxima
-    const [conteoInscritos] = await query(
-      "SELECT COUNT(*) as total FROM inscripcion WHERE paralelo_id = ? AND estado IN ('activa', 'completada')",
-      [paraleloId],
-    )
-
-    if (conteoInscritos.total >= paralelo.max_estudiantes) {
+    if (paralelo.inscritos_actuales >= paralelo.max_estudiantes) {
       return NextResponse.json({ error: "El paralelo ha alcanzado su capacidad máxima" }, { status: 400 })
     }
 
-    // Crear inscripción
-    const inscripcionResult = await query(
-      "INSERT INTO inscripcion (estudiante_id, paralelo_id, fecha_inscripcion, estado) VALUES (?, ?, NOW(), 'activa')",
-      [estudiante_id, paraleloId],
-    )
+    // Verificar que el estudiante existe
+    const estudianteQuery = `SELECT * FROM estudiante WHERE id = ?`
+    const estudianteResult = await db.query(estudianteQuery, [estudiante_id])
 
-    // Crear registro de pago pendiente
-    await query(
-      "INSERT INTO pago (inscripcion_id, monto, fecha_pago, metodo_pago, estado) VALUES (?, ?, NOW(), 'transferencia', 'pendiente')",
-      [inscripcionResult.insertId, paralelo.costo_matricula],
-    )
+    if (!estudianteResult || estudianteResult.length === 0) {
+      return NextResponse.json({ error: "Estudiante no encontrado" }, { status: 404 })
+    }
 
-    // Registrar en log del sistema
-    await query(
-      "INSERT INTO log_sistema (usuario_id, accion, entidad, entidad_id, detalles) VALUES (?, 'inscribir_estudiante', 'paralelo', ?, ?)",
-      [
-        authResult.user.id,
-        paraleloId,
-        `Estudiante ${estudiante.nombre} ${estudiante.apellido} inscrito en paralelo ${paralelo.nombre_paralelo}`,
-      ],
-    )
+    // Verificar que el estudiante no esté ya inscrito en este paralelo
+    const inscripcionExistente = `
+      SELECT * FROM inscripcion 
+      WHERE estudiante_id = ? AND paralelo_id = ? AND estado != 'cancelada'
+    `
+
+    const inscripcionResult = await db.query(inscripcionExistente, [estudiante_id, id])
+
+    if (inscripcionResult && inscripcionResult.length > 0) {
+      return NextResponse.json({ error: "El estudiante ya está inscrito en este paralelo" }, { status: 400 })
+    }
+
+    // Crear la inscripción
+    const insertQuery = `
+      INSERT INTO inscripcion (
+        estudiante_id, 
+        paralelo_id, 
+        fecha_inscripcion, 
+        estado
+      ) VALUES (?, ?, NOW(), 'activa')
+    `
+
+    const result = await db.query(insertQuery, [estudiante_id, id])
 
     return NextResponse.json({
-      success: true,
       message: "Estudiante inscrito exitosamente",
-      inscripcion_id: inscripcionResult.insertId,
+      inscripcion_id: result.insertId,
     })
   } catch (error) {
     console.error("Error al inscribir estudiante:", error)
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
+    return NextResponse.json({ error: "Error al inscribir el estudiante" }, { status: 500 })
   }
 }

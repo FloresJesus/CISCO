@@ -141,7 +141,6 @@ export default function ParalelosList({ cursoId, cursoNombre }) {
               <option value="completado">Completado</option>
               <option value="cancelado">Cancelado</option>
             </select>
-
             <button
               onClick={() =>
                 router.push(cursoId ? `/admin/cursos/${cursoId}/paralelos/nuevo` : `/admin/cursos/paralelos/nuevo`)

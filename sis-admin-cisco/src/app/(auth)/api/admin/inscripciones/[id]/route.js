@@ -5,6 +5,18 @@ export async function GET(request, { params }) {
   try {
     const inscripcionId = params.id
 
+    //obtener datos de usuario
+    const [estudiante] = await query(
+      `
+      SELECT
+        usuario_id
+      FROM inscripcion i
+      JOIN estudiante e ON i.estudiante_id = e.id
+      Where i.id = ?;
+    `, 
+      [inscripcionId],
+    )
+
     // Obtener datos de la inscripción
     const [inscripcion] = await query(
       `
@@ -129,6 +141,7 @@ export async function GET(request, { params }) {
       calificaciones,
       asistencias,
       resumen_asistencia,
+      ...estudiante
     }
 
     return NextResponse.json(inscripcionCompleta)

@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
-import ParaleloDetail from "@/components/admin/paralelos/ParaleloDetail"
+import ParaleloForm from "@/components/admin/paralelos/ParaleloForm"
 import api from "@/libs/api"
 
-export default function ParaleloDetailPage() {
+export default function EditarParaleloPage() {
   const params = useParams()
   const paraleloId = params.id
   const [paralelo, setParalelo] = useState(null)
+  const [cursoId, setCursoId] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -18,6 +19,7 @@ export default function ParaleloDetailPage() {
       try {
         const { data } = await api.get(`/admin/paralelos/${paraleloId}`)
         setParalelo(data)
+        setCursoId(data.curso_id)
       } catch (err) {
         console.error("Error al cargar el paralelo:", err)
         setError("Error al cargar la información del paralelo. Por favor, intenta de nuevo.")
@@ -48,5 +50,5 @@ export default function ParaleloDetailPage() {
     )
   }
 
-  return <ParaleloDetail paralelo={paralelo} />
+  return <ParaleloForm cursoId={cursoId} paralelo={paralelo} />
 }

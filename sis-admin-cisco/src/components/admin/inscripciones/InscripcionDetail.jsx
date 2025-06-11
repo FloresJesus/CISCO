@@ -6,6 +6,13 @@ import { FaEdit, FaArrowLeft, FaUserGraduate, FaBook, FaCalendarAlt, FaCreditCar
 import api from "@/libs/api"
 import { formatDate, formatCurrency } from "@/libs/utils"
 
+// Función helper para formatear números de forma segura
+const formatNumber = (value, decimals = 1) => {
+  if (value === null || value === undefined) return "0"
+  const num = typeof value === "number" ? value : Number.parseFloat(value)
+  return isNaN(num) ? "0" : num.toFixed(decimals)
+}
+
 export default function InscripcionDetail({ inscripcion: initialInscripcion }) {
   const router = useRouter()
   const [inscripcion, setInscripcion] = useState(initialInscripcion)
@@ -18,6 +25,7 @@ export default function InscripcionDetail({ inscripcion: initialInscripcion }) {
     setError(null)
     try {
       const { data } = await api.get(`/admin/inscripciones/${initialInscripcion.id}`)
+      console.log("Datos de inscripción cargados:", data)
       setInscripcion(data)
     } catch (err) {
       console.error("Error al cargar datos de la inscripción:", err)
@@ -53,7 +61,6 @@ export default function InscripcionDetail({ inscripcion: initialInscripcion }) {
       </div>
     )
   }
-
   if (error) {
     return (
       <div className="bg-red-50 text-red-800 p-6 rounded-lg">
@@ -187,7 +194,7 @@ export default function InscripcionDetail({ inscripcion: initialInscripcion }) {
                 </div>
                 <div className="pt-2">
                   <button
-                    onClick={() => router.push(`/admin/usuarios/estudiantes/${inscripcion.estudiante_id}`)}
+                    onClick={() => router.push(`/admin/usuarios/${inscripcion.usuario_id}`)}
                     className="text-sm text-ciscoBlue hover:text-ciscoDarkBlue"
                   >
                     Ver perfil completo del estudiante →
@@ -265,7 +272,7 @@ export default function InscripcionDetail({ inscripcion: initialInscripcion }) {
                 </div>
                 <div className="pt-2">
                   <button
-                    onClick={() => router.push(`/admin/cursos/paralelos/${inscripcion.paralelo_id}`)}
+                    onClick={() => router.push(`/admin/paralelos/${inscripcion.paralelo_id}`)}
                     className="text-sm text-ciscoBlue hover:text-ciscoDarkBlue"
                   >
                     Ver detalles del paralelo →
@@ -311,7 +318,7 @@ export default function InscripcionDetail({ inscripcion: initialInscripcion }) {
                             : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {inscripcion.calificacion_final.toFixed(1)}/10
+                      {formatNumber(inscripcion.calificacion_final)}/10
                     </span>
                   </div>
                 )}
@@ -498,7 +505,7 @@ export default function InscripcionDetail({ inscripcion: initialInscripcion }) {
                                   : "bg-red-100 text-red-800"
                             }`}
                           >
-                            {calificacion.puntuacion.toFixed(1)}/{calificacion.valor_maximo.toFixed(1)}
+                            {formatNumber(calificacion.puntuacion)}/{formatNumber(calificacion.valor_maximo)}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -521,7 +528,7 @@ export default function InscripcionDetail({ inscripcion: initialInscripcion }) {
                                   : "bg-red-100 text-red-800"
                             }`}
                           >
-                            {inscripcion.calificacion_final.toFixed(1)}/10
+                            {formatNumber(inscripcion.calificacion_final)}/10
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"></td>
