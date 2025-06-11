@@ -66,7 +66,7 @@ export default function AdminSidebar() {
       submenu: 'academico',
       items: [
         { title: 'Inscripciones', path: '/admin/academico/inscripciones' },
-        { title: 'Asistencias', path: '/admin/academico/asistencias' },
+        //{ title: 'Asistencias', path: '/admin/academico/asistencias' },
         { title: 'Calificaciones', path: '/admin/academico/calificaciones' },
         { title: 'Certificaciones', path: '/admin/academico/certificaciones' },
       ]
