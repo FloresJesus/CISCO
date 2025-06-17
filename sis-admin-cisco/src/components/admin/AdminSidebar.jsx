@@ -87,11 +87,11 @@ export default function AdminSidebar() {
         { title: 'Listados', path: '/admin/reportes/listados' }
       ]
     },
-    {
+    /*{
       title: 'Configuración',
       icon: <FiSettings className="w-5 h-5" />,
       path: '/admin/configuracion',
-    },
+    },*/
   ];
   //para el cierre de sesion
   const handleLogout = async () => {

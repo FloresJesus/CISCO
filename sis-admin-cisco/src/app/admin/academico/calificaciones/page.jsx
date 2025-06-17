@@ -169,22 +169,7 @@ export default function CalificacionesPage() {
             </h1>
             <p className="text-gray-600 mt-2">Administra y supervisa las calificaciones de los estudiantes</p>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => exportGrades("excel")}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ciscoBlue"
-            >
-              <FiDownload className="h-4 w-4" />
-              Excel
-            </button>
-            <button
-              onClick={() => exportGrades("pdf")}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ciscoBlue"
-            >
-              <FiFileText className="h-4 w-4" />
-              PDF
-            </button>
-          </div>
+          
         </div>
 
         {/* Error Message */}
