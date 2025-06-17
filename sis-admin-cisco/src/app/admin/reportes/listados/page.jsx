@@ -180,13 +180,46 @@ export default function EstadisticasReportesPage() {
       case "pagos":
         autoTable(doc, {
           startY,
-          head: [["ID", "Estudiante", "Curso", "Monto", "Fecha", "Estado"]],
+          head: [["ID", "Estudiante", "Curso", "Tipo", "Monto", "Método", "Fecha", "Estado"]],
           body: reportData.map((item) => [
             item.id,
             `${item.estudiante_nombre} ${item.estudiante_apellido}`,
             item.curso_nombre,
+            item.tipo_estudiante?.toUpperCase() || "N/A",
             formatCurrency(item.monto),
+            item.metodo_pago,
             formatDate(item.fecha_pago),
+            item.estado,
+          ]),
+        })
+        break
+
+      case "personas":
+        autoTable(doc, {
+          startY,
+          head: [["Nombre", "Email", "Rol", "Tipo", "Estado", "Fecha Registro"]],
+          body: reportData.map((item) => [
+            `${item.nombre} ${item.apellido}`,
+            item.email,
+            item.rol,
+            item.tipo_estudiante?.toUpperCase() || "N/A",
+            item.estado,
+            formatDate(item.fecha_registro),
+          ]),
+        })
+        break
+
+      case "cursos":
+        autoTable(doc, {
+          startY,
+          head: [["Código", "Nombre", "Nivel", "Categoría", "Duración", "Costo", "Estado"]],
+          body: reportData.map((item) => [
+            item.codigo,
+            item.nombre,
+            item.nivel,
+            item.categoria,
+            `${item.duracion_semanas} sem`,
+            formatCurrency(item.costo_matricula),
             item.estado,
           ]),
         })
@@ -195,12 +228,14 @@ export default function EstadisticasReportesPage() {
       case "cursos-paralelos":
         autoTable(doc, {
           startY,
-          head: [["Curso", "Paralelo", "Fecha Inicio", "Fecha Fin", "Inscritos", "Estado"]],
+          head: [["Curso", "Paralelo", "Fecha Inicio", "Fecha Fin", "Horario", "Aula", "Inscritos", "Estado"]],
           body: reportData.map((item) => [
             item.curso_nombre,
             item.nombre_paralelo,
             formatDate(item.fecha_inicio),
             formatDate(item.fecha_fin),
+            item.horario || "N/A",
+            item.aula || "N/A",
             `${item.total_inscritos}/${item.max_estudiantes}`,
             item.paralelo_estado,
           ]),
@@ -210,10 +245,11 @@ export default function EstadisticasReportesPage() {
       case "cursos-instructores":
         autoTable(doc, {
           startY,
-          head: [["Curso", "Instructor", "Especialidad", "Paralelos", "Estudiantes"]],
+          head: [["Curso", "Instructor", "Email", "Especialidad", "Paralelos", "Estudiantes"]],
           body: reportData.map((item) => [
             item.curso_nombre,
             `${item.instructor_nombre} ${item.instructor_apellido}`,
+            item.instructor_email,
             item.especialidad || "N/A",
             item.total_paralelos,
             item.total_estudiantes,
@@ -224,14 +260,32 @@ export default function EstadisticasReportesPage() {
       case "completo":
         autoTable(doc, {
           startY,
-          head: [["Curso", "Paralelo", "Instructor", "Inscritos", "Aprobados", "Promedio"]],
+          head: [["Curso", "Paralelo", "Instructor", "Período", "Inscritos", "Aprobados", "Promedio", "Estado"]],
           body: reportData.map((item) => [
             item.curso_nombre,
             item.nombre_paralelo,
             `${item.instructor_nombre} ${item.instructor_apellido}`,
+            `${formatDate(item.fecha_inicio)} - ${formatDate(item.fecha_fin)}`,
             item.total_inscritos,
             item.aprobados,
             item.promedio_notas || "N/A",
+            item.paralelo_estado,
+          ]),
+        })
+        break
+
+      case "notas":
+        autoTable(doc, {
+          startY,
+          head: [["Estudiante", "Curso", "Paralelo", "Instructor", "Nota", "Estado", "Certificado"]],
+          body: reportData.map((item) => [
+            `${item.estudiante_nombre} ${item.estudiante_apellido}`,
+            item.curso_nombre,
+            item.paralelo_nombre || "N/A",
+            `${item.instructor_nombre} ${item.instructor_apellido}`,
+            item.calificacion_final ? `${item.calificacion_final}/100` : "Pendiente",
+            item.calificacion_final >= 51 ? "Aprobado" : "Reprobado",
+            item.certificado_generado ? "Generado" : "Pendiente",
           ]),
         })
         break
@@ -239,10 +293,11 @@ export default function EstadisticasReportesPage() {
       case "aprobados-reprobados":
         autoTable(doc, {
           startY,
-          head: [["Curso", "Paralelo", "Total", "Aprobados", "Reprobados", "% Aprobados"]],
+          head: [["Curso", "Paralelo", "Instructor", "Total", "Aprobados", "Reprobados", "% Aprobados"]],
           body: reportData.map((item) => [
             item.curso_nombre,
             item.nombre_paralelo,
+            `${item.instructor_nombre} ${item.instructor_apellido}`,
             item.total_estudiantes,
             item.aprobados,
             item.reprobados,
@@ -251,15 +306,33 @@ export default function EstadisticasReportesPage() {
         })
         break
 
+      case "porcentajes":
+        autoTable(doc, {
+          startY,
+          head: [["Curso", "Total", "Aprobados", "% Aprobados", "Reprobados", "% Reprobados", "Promedio"]],
+          body: reportData.map((item) => [
+            item.curso_nombre,
+            item.total_estudiantes,
+            item.aprobados,
+            `${item.porcentaje_aprobados || 0}%`,
+            item.reprobados,
+            `${item.porcentaje_reprobados || 0}%`,
+            item.promedio_general || "N/A",
+          ]),
+        })
+        break
+
       case "egresados":
         autoTable(doc, {
           startY,
-          head: [["Estudiante", "Curso", "Nota", "Certificado", "Fecha"]],
+          head: [["Estudiante", "Curso", "Paralelo", "Instructor", "Nota", "Certificado", "Fecha Egreso"]],
           body: reportData.map((item) => [
             `${item.estudiante_nombre} ${item.estudiante_apellido}`,
             item.curso_nombre,
-            item.calificacion_final,
-            item.certificado_generado ? "Sí" : "No",
+            item.paralelo_nombre,
+            `${item.instructor_nombre} ${item.instructor_apellido}`,
+            `${item.calificacion_final}/100`,
+            item.certificado_generado ? "Generado" : "Pendiente",
             formatDate(item.certificado_fecha),
           ]),
         })
@@ -268,8 +341,8 @@ export default function EstadisticasReportesPage() {
       default:
         autoTable(doc, {
           startY,
-          head: [["Datos del Reporte"]],
-          body: [["Datos no disponibles para exportación"]],
+          head: [["Información"]],
+          body: [["No se pudo generar la tabla para este tipo de reporte"]],
         })
     }
   }
