@@ -191,6 +191,7 @@ export default function UsuarioDetail({ usuario: initialUsuario }) {
                       {usuario.rol}
                     </span>
                   </div>
+                  
                   <div>
                     <p className="text-sm text-gray-500">Estado</p>
                     <span
@@ -232,6 +233,12 @@ export default function UsuarioDetail({ usuario: initialUsuario }) {
                       <div className="flex items-center gap-2 mt-1">
                         {detalles.telefono && <FaPhone className="text-gray-400" />}
                         <p className="font-medium">{detalles.telefono || "No especificado"}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">CI</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="font-medium">{detalles.ci||"CI no registrado"}</p>
                       </div>
                     </div>
                     <div>

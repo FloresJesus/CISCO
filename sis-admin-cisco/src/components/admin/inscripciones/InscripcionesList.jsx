@@ -271,7 +271,7 @@ export default function InscripcionesList() {
                         </button>
                         {inscripcion.estado === "completada" && (
                           <button
-                            onClick={() => downloadRecibo(inscripcion.estudiante_id)}
+                            onClick={() => downloadRecibo(inscripcion.id)}
                             className="text-green-600 hover:text-green-900"
                             title="Comprobante"
                           >

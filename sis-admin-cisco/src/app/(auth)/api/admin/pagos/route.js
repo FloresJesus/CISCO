@@ -117,12 +117,16 @@ export async function POST(request) {
       `INSERT INTO log_sistema (usuario_id, accion, entidad, entidad_id, detalles)
        VALUES (?, ?, ?, ?, ?)`,
       [
-        tokenData.id,
+        tokenData.user.id,
         "crear",
         "pago",
         result.insertId,
         `Pago registrado por ${tokenData.email} - Monto: ${data.monto} - Método: ${data.metodo_pago}`,
       ],
+    )
+    await db.query(
+        "INSERT INTO notificacion (usuario_id,titulo,mensaje,tipo) VALUES (?,?,?,?)",
+        [tokenData.user.id, "Nuevo pago registrado",`Se realizo un nuevo pago.`,"sistema"],
     )
 
     return NextResponse.json({ id: result.insertId, message: "Pago registrado correctamente" }, { status: 201 })

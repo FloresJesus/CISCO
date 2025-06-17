@@ -31,7 +31,8 @@ export async function GET(request) {
         COALESCE(e.apellido, i.apellido) AS apellido,
         COALESCE(e.telefono, i.telefono) AS telefono,
         COALESCE(e.estado, i.estado) AS estado,
-        e.tipo_estudiante
+        e.tipo_estudiante,
+        e.ci
       FROM usuario u
       LEFT JOIN estudiante e ON u.id = e.usuario_id AND u.rol = 'estudiante'
       LEFT JOIN instructor i ON u.id = i.usuario_id
@@ -125,7 +126,6 @@ export async function POST(request) {
     if (!adminData) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
-
     const data = await request.json()
     const { 
       email, 
@@ -136,11 +136,12 @@ export async function POST(request) {
       telefono, 
       especialidad = null, 
       biografia = null, 
-      tipo_estudiante = 'externo' 
+      tipo_estudiante = 'externo',
+      ci,
     } = data
 
     // Validaciones básicas
-    if (!email || !password || !rol || !nombre || !apellido) {
+    if (!email || !password || !rol || !nombre || !apellido || !ci) {
       return NextResponse.json({ error: "Faltan campos requeridos" }, { status: 400 })
     }
 
@@ -168,8 +169,8 @@ export async function POST(request) {
       // Insertar datos específicos según el rol
       if (rol === "estudiante") {
         await db.query(
-          "INSERT INTO estudiante (usuario_id, nombre, apellido, email, telefono, tipo_estudiante) VALUES (?, ?, ?, ?, ?, ?)",
-          [userId, nombre, apellido, email.toLowerCase(), telefono || null, tipo_estudiante],
+          "INSERT INTO estudiante (usuario_id, nombre, apellido, email, telefono, tipo_estudiante,ci) VALUES (?, ?, ?, ?, ?, ?,?)",
+          [userId, nombre, apellido, email.toLowerCase(), telefono || null, tipo_estudiante,ci],
         )
       } else if (rol === "instructor") {
         await db.query(
@@ -186,10 +187,13 @@ export async function POST(request) {
       // Registrar en el log del sistema
       await db.query(
         "INSERT INTO log_sistema (usuario_id, accion, entidad, entidad_id, detalles) VALUES (?, ?, ?, ?, ?)",
-        [adminData.id, "crear", "usuario", userId, `Creación de usuario con rol ${rol}${rol === 'estudiante' ? ` (${tipo_estudiante})` : ''}`],
+        [adminData.user.id, "crear", "usuario", userId, `Creación de usuario con rol ${rol}${rol === 'estudiante' ? ` (${tipo_estudiante})` : ''}`],
       )
       // Registran en notificaciones
-      
+      await db.query(
+        "INSERT INTO notificacion (usuario_id,titulo,mensaje,tipo) VALUES (?,?,?,?)",
+        [adminData.user.id, "Nuevo Usuario Creado",`El ${rol} ${nombre} ${apellido} ha sido registrado exitosamente.`,"sistema"],
+      )
 
       // Confirmar transacción
       await db.query("COMMIT")

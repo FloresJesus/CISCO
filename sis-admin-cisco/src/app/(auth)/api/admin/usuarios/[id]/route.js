@@ -47,6 +47,7 @@ export async function GET(request, { params }) {
           telefono, 
           foto_perfil, 
           fecha_nacimiento, 
+          ci,
           estado
         FROM estudiante 
         WHERE usuario_id = ?
@@ -96,7 +97,7 @@ export async function PUT(request, { params }) {
 
     const { id } = params
     const data = await request.json()
-    const { email, password, activo, nombre, apellido, telefono, especialidad, biografia, estado } = data
+    const { email, password, activo, nombre, apellido, telefono, especialidad, biografia, estado, ci } = data
 
     // Verificar si el usuario existe
     const [usuario] = await db.query("SELECT rol FROM usuario WHERE id = ?", [id])
@@ -136,7 +137,7 @@ export async function PUT(request, { params }) {
       }
 
       // Actualizar datos específicos según el rol
-      if (usuario.rol === "estudiante" && (nombre || apellido || telefono || estado)) {
+      if (usuario.rol === "estudiante" && (nombre || apellido || telefono || estado || ci)) {
         let updateStudentQuery = "UPDATE estudiante SET "
         const updateStudentParams = []
         const updateStudentFields = []
@@ -164,6 +165,11 @@ export async function PUT(request, { params }) {
         if (estado) {
           updateStudentFields.push("estado = ?")
           updateStudentParams.push(estado)
+        }
+
+        if (ci){
+          updateStudentFields.push("ci = ?")
+          updateStudentParams.push(ci)
         }
 
         if (updateStudentFields.length > 0) {

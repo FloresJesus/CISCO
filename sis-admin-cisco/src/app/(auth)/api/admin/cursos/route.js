@@ -172,9 +172,12 @@ export async function POST(request) {
       // Registrar en el log del sistema
       await db.query(
         "INSERT INTO log_sistema (usuario_id, accion, entidad, entidad_id, detalles) VALUES (?, ?, ?, ?, ?)",
-        [adminData.id, "crear", "curso", cursoId, `Creación de curso: ${nombre}`],
+        [adminData.user.id, "crear", "curso", cursoId, `Creación de curso: ${nombre}`],
       )
-
+      await db.query(
+        "INSERT INTO notificacion (usuario_id,titulo,mensaje,tipo) VALUES (?,?,?,?)",
+        [adminData.user.id, "Nuevo curso creado",`El ${nombre} ha sido creado exitosamente.`,"sistema"],
+      )
       // Confirmar transacción
       await db.query("COMMIT")
 

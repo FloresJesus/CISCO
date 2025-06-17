@@ -18,7 +18,6 @@ export default async function EditarUsuarioPage({ params }) {
   if (!usuario) {
     notFound()
   }
-
   return (
     <div className="container mx-auto px-4 py-6">
       <UsuarioForm usuario={usuario} />

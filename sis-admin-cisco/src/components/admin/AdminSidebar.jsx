@@ -84,6 +84,7 @@ export default function AdminSidebar() {
         { title: 'Académicos', path: '/admin/reportes/academicos' },
         { title: 'Financieros', path: '/admin/reportes/financieros' },
         { title: 'Estadísticas', path: '/admin/reportes/estadisticas' },
+        { title: 'Listados', path: '/admin/reportes/listados' }
       ]
     },
     {

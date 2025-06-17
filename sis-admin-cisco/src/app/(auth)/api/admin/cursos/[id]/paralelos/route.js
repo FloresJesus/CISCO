@@ -5,12 +5,14 @@ import { verifyAdminToken } from "@/libs/auth"
 export async function GET(request, { params }) {
   try {
     const adminData = await verifyAdminToken(request)
-    if (!adminData) {
+    if (!adminData || !adminData.success) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
-
     const { id } = params
+    if (!id) {
+      return NextResponse.json({ error: "ID de curso requerido" }, { status: 400 })
+    }
     // Obtener todos los paralelos del curso
     const paralelos = await db.query(
       `
@@ -36,14 +38,24 @@ export async function GET(request, { params }) {
     )
     return NextResponse.json(paralelos)
   } catch (error) {
-    console.error(`Error al obtener paralelos para el curso ${params.id}:`, error)
+    console.error(`Error al obtener paralelos para el curso ${params?.id}:`, error)
     return NextResponse.json({ error: "Error al obtener paralelos" }, { status: 500 })
   }
 }
 
 export async function POST(request, { params }) {
   try {
+    // Verificar autenticación
+    const adminData = await verifyAdminToken(request)
+    if (!adminData || !adminData.success) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
+
     const cursoId = params.id
+    if (!cursoId) {
+      return NextResponse.json({ error: "ID de curso requerido" }, { status: 400 })
+    }
+
     const data = await request.json()
 
     // Validar datos requeridos
@@ -95,31 +107,11 @@ export async function POST(request, { params }) {
       ],
     )
 
-    // Obtener el paralelo recién creado
-    const [nuevoParalelo] = await db.query(
-      `
-      SELECT 
-        p.id, 
-        p.codigo_paralelo, 
-        p.nombre_paralelo, 
-        p.fecha_inicio,
-        p.fecha_fin,
-        p.horario,
-        p.aula,
-        p.max_estudiantes,
-        p.estado,
-        CONCAT(i.nombre, ' ', i.apellido) as instructor_nombre,
-        i.id as instructor_id
-      FROM paralelo p
-      JOIN instructor i ON p.instructor_id = i.id
-      WHERE p.id = ?
-      `,
-      [result.insertId],
-    )
+    // Retornar respuesta de éxito
+    return NextResponse.json({ success: true, paraleloId: result.insertId })
 
-    return NextResponse.json(nuevoParalelo[0], { status: 201 })
   } catch (error) {
-    console.error(`Error al crear paralelo para el curso ${params.id}:`, error)
+    console.error(`Error al crear paralelo para el curso ${params?.id}:`, error)
     return NextResponse.json({ error: "Error al crear el paralelo" }, { status: 500 })
   }
 }

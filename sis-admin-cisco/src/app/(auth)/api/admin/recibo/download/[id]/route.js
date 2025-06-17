@@ -32,12 +32,12 @@ export async function GET(request, { params }) {
         c.nivel,
         c.codigo,
         c.costo_matricula
-      FROM estudiante e
-      JOIN inscripcion i On i.estudiante_id = e.id
+      FROM inscripcion i
+      JOIN estudiante e On i.estudiante_id = e.id
       JOIN pago p ON p.inscripcion_id = i.id
       JOIN paralelo par ON i.paralelo_id = par.id
       JOIN curso c ON par.curso_id = c.id
-      WHERE e.id = ?
+      WHERE i.id = ?
     `,
         [id],
     )
@@ -83,11 +83,9 @@ export async function GET(request, { params }) {
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.text("Oruro-Bolivia, Calle Pagador entre Jose Ballivian y Aldana", 280, 26, { align: "right" });
-    doc.text("numero de celular 555-555-555", 280, 31, { align: "right" });
-    doc.text("email@example.com", 280, 36, { align: "right" });
-    doc.text("info@example.al", 280, 41, { align: "right" });
-    doc.text("www.example.al", 280, 46, { align: "right" });
+    doc.text("Pagador entre Ballivián y Aldana- Carr. Ing. Sistemas e Ing. Informatica", 280, 26, { align: "right" });
+    doc.text("numero de celular +591 69585007", 280, 31, { align: "right" });
+    doc.text("Academia@cisco.sistemas.edu.bo", 280, 36, { align: "right" });
     doc.line(10, 50, 280, 50);
 
     // Datos del cliente

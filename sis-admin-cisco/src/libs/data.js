@@ -68,7 +68,7 @@ export async function getUserById(id) {
         u.email, 
         u.rol, 
         u.fecha_creacion, 
-        u.ultimo_acceso, 
+        u.ultimo_acceso,
         u.activo
       FROM usuario u
       WHERE u.id = ?
@@ -92,7 +92,8 @@ export async function getUserById(id) {
           email, 
           telefono, 
           foto_perfil, 
-          fecha_nacimiento, 
+          fecha_nacimiento,
+          ci,
           estado
         FROM estudiante 
         WHERE usuario_id = ?
