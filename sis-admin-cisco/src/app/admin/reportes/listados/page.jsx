@@ -57,9 +57,9 @@ export default function EstadisticasReportesPage() {
         ])
 
         setOptions({
-          cursos: cursosRes.data.data || [],
-          paralelos: paralelosRes.data.data || [],
-          instructores: instructoresRes.data.data || [],
+          cursos: cursosRes.data.cursos || [],
+          paralelos: paralelosRes.data.paralelos || [],
+          instructores: instructoresRes.data.instructores || [],
         })
       } catch (error) {
         console.error("Error cargando opciones:", error)
