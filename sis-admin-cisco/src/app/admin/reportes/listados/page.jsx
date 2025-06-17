@@ -20,6 +20,9 @@ export default function EstadisticasReportesPage() {
     instructor: "",
     estado: "",
     tipoEstudiante: "",
+    categoria: "",
+    nivel: "",
+    metodoPago: "",
   })
   const [options, setOptions] = useState({
     cursos: [],
@@ -105,24 +108,36 @@ export default function EstadisticasReportesPage() {
     loadReportData()
   }
 
+  // Función para limpiar filtros
+  const handleClearFilters = () => {
+    setFilters({
+      fechaInicio: "",
+      fechaFin: "",
+      curso: "",
+      paralelo: "",
+      instructor: "",
+      estado: "",
+      tipoEstudiante: "",
+      categoria: "",
+      nivel: "",
+      metodoPago: "",
+    })
+  }
+
   // Función para exportar a PDF
   const exportToPDF = () => {
     const doc = new jsPDF()
     const reportInfo = reportTypes.find((r) => r.id === selectedReport)
 
-    //logo
-
-
-    //insertar logo izquierdo
-    doc.addImage('/images/cisco2.png', "PNG", 10, 10, 40, 20);
-    doc.setFont("helvetica", "normal");
-    doc.addImage('/images/utologo.png', "PNG", 170, 10, 20, 20);
+    // Insertar logos
+    doc.addImage("/images/cisco2.png", "PNG", 10, 10, 40, 20)
+    doc.setFont("helvetica", "normal")
+    doc.addImage("/images/utologo.png", "PNG", 170, 10, 20, 20)
 
     // Título
-
     doc.setFontSize(20)
-    doc.text("REPORTE", 110, 20,{align: "center"})
-    doc.text(reportInfo.name, 110, 30,{align: "center"})
+    doc.text("REPORTE", 110, 20, { align: "center" })
+    doc.text(reportInfo.name, 110, 30, { align: "center" })
 
     // Información de filtros
     doc.setFontSize(10)
@@ -163,7 +178,7 @@ export default function EstadisticasReportesPage() {
 
     switch (selectedReport) {
       case "pagos":
-        autoTable(doc,{
+        autoTable(doc, {
           startY,
           head: [["ID", "Estudiante", "Curso", "Monto", "Fecha", "Estado"]],
           body: reportData.map((item) => [
@@ -177,65 +192,67 @@ export default function EstadisticasReportesPage() {
         })
         break
 
-      case "personas":
-        autoTable(doc,{
+      case "cursos-paralelos":
+        autoTable(doc, {
           startY,
-          head: [["Nombre", "Email", "Rol", "Tipo", "Estado"]],
+          head: [["Curso", "Paralelo", "Fecha Inicio", "Fecha Fin", "Inscritos", "Estado"]],
           body: reportData.map((item) => [
-            `${item.nombre} ${item.apellido}`,
-            item.email,
-            item.rol,
-            item.tipo_estudiante || "N/A",
-            item.estado,
-          ]),
-        })
-        break
-
-      case "cursos":
-        autoTable(doc,{
-          startY,
-          head: [["Código", "Nombre", "Nivel", "Duración", "Costo"]],
-          body: reportData.map((item) => [
-            item.codigo,
-            item.nombre,
-            item.nivel,
-            `${item.duracion_semanas} sem`,
-            formatCurrency(item.costo_matricula),
-          ]),
-        })
-        break
-
-      case "notas":
-        autoTable(doc,{
-          startY,
-          head: [["Estudiante", "Curso", "Paralelo", "Instructor", "Nota"]],
-          body: reportData.map((item) => [
-            `${item.estudiante_nombre} ${item.estudiante_apellido}`,
             item.curso_nombre,
-            item.paralelo_nombre || "N/A",
+            item.nombre_paralelo,
+            formatDate(item.fecha_inicio),
+            formatDate(item.fecha_fin),
+            `${item.total_inscritos}/${item.max_estudiantes}`,
+            item.paralelo_estado,
+          ]),
+        })
+        break
+
+      case "cursos-instructores":
+        autoTable(doc, {
+          startY,
+          head: [["Curso", "Instructor", "Especialidad", "Paralelos", "Estudiantes"]],
+          body: reportData.map((item) => [
+            item.curso_nombre,
             `${item.instructor_nombre} ${item.instructor_apellido}`,
-            item.calificacion_final || "N/A",
+            item.especialidad || "N/A",
+            item.total_paralelos,
+            item.total_estudiantes,
           ]),
         })
         break
 
-      case "porcentajes":
-        autoTable(doc,{
+      case "completo":
+        autoTable(doc, {
           startY,
-          head: [["Curso", "Total", "Aprobados", "% Aprobados", "Reprobados", "% Reprobados"]],
+          head: [["Curso", "Paralelo", "Instructor", "Inscritos", "Aprobados", "Promedio"]],
           body: reportData.map((item) => [
             item.curso_nombre,
+            item.nombre_paralelo,
+            `${item.instructor_nombre} ${item.instructor_apellido}`,
+            item.total_inscritos,
+            item.aprobados,
+            item.promedio_notas || "N/A",
+          ]),
+        })
+        break
+
+      case "aprobados-reprobados":
+        autoTable(doc, {
+          startY,
+          head: [["Curso", "Paralelo", "Total", "Aprobados", "Reprobados", "% Aprobados"]],
+          body: reportData.map((item) => [
+            item.curso_nombre,
+            item.nombre_paralelo,
             item.total_estudiantes,
             item.aprobados,
-            `${item.porcentaje_aprobados || 0}%`,
             item.reprobados,
-            `${item.porcentaje_reprobados || 0}%`,
+            `${item.porcentaje_aprobados || 0}%`,
           ]),
         })
         break
 
       case "egresados":
-        autoTable(doc,{
+        autoTable(doc, {
           startY,
           head: [["Estudiante", "Curso", "Nota", "Certificado", "Fecha"]],
           body: reportData.map((item) => [
@@ -249,11 +266,129 @@ export default function EstadisticasReportesPage() {
         break
 
       default:
-        autoTable(doc,{
+        autoTable(doc, {
           startY,
           head: [["Datos del Reporte"]],
           body: [["Datos no disponibles para exportación"]],
         })
+    }
+  }
+
+  // Función para obtener filtros específicos según el reporte
+  const getSpecificFilters = () => {
+    switch (selectedReport) {
+      case "pagos":
+        return (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Método de Pago</label>
+              <select
+                value={filters.metodoPago}
+                onChange={(e) => setFilters((prev) => ({ ...prev, metodoPago: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todos los métodos</option>
+                <option value="transferencia">Transferencia</option>
+                <option value="tarjeta">Tarjeta</option>
+                <option value="efectivo">Efectivo</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Estado del Pago</label>
+              <select
+                value={filters.estado}
+                onChange={(e) => setFilters((prev) => ({ ...prev, estado: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todos los estados</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="completado">Completado</option>
+                <option value="rechazado">Rechazado</option>
+                <option value="reembolsado">Reembolsado</option>
+              </select>
+            </div>
+          </>
+        )
+
+      case "cursos":
+      case "cursos-paralelos":
+      case "cursos-instructores":
+      case "porcentajes":
+        return (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+              <select
+                value={filters.categoria}
+                onChange={(e) => setFilters((prev) => ({ ...prev, categoria: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todas las categorías</option>
+                <option value="ccna">CCNA</option>
+                <option value="cyberops">CyberOps</option>
+                <option value="devnet">DevNet</option>
+                <option value="iot">IoT</option>
+                <option value="otros">Otros</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nivel</label>
+              <select
+                value={filters.nivel}
+                onChange={(e) => setFilters((prev) => ({ ...prev, nivel: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todos los niveles</option>
+                <option value="introductorio">Introductorio</option>
+                <option value="intermedio">Intermedio</option>
+                <option value="avanzado">Avanzado</option>
+                <option value="experto">Experto</option>
+              </select>
+            </div>
+          </>
+        )
+
+      case "notas":
+      case "aprobados-reprobados":
+      case "completo":
+        return (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Paralelo</label>
+              <select
+                value={filters.paralelo}
+                onChange={(e) => setFilters((prev) => ({ ...prev, paralelo: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todos los paralelos</option>
+                {options.paralelos.map((paralelo) => (
+                  <option key={paralelo.id} value={paralelo.id}>
+                    {paralelo.nombre_paralelo}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Instructor</label>
+              <select
+                value={filters.instructor}
+                onChange={(e) => setFilters((prev) => ({ ...prev, instructor: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todos los instructores</option>
+                {options.instructores.map((instructor) => (
+                  <option key={instructor.id} value={instructor.id}>
+                    {instructor.nombre} {instructor.apellido}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </>
+        )
+
+      default:
+        return null
     }
   }
 
@@ -277,6 +412,7 @@ export default function EstadisticasReportesPage() {
       cancelado: "bg-red-100 text-red-800",
       disponible: "bg-green-100 text-green-800",
       en_progreso: "bg-blue-100 text-blue-800",
+      planificado: "bg-gray-100 text-gray-800",
     }
 
     return (
@@ -480,6 +616,133 @@ export default function EstadisticasReportesPage() {
     </div>
   )
 
+  const renderCursosParalelosTable = (data) => (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Curso</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paralelo</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Inicio</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Fin</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Horario</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aula</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Inscritos</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {data.map((item, index) => (
+            <tr key={`${item.paralelo_id}-${index}`} className="hover:bg-gray-50">
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm font-medium">{item.curso_nombre}</div>
+                <div className="text-sm text-gray-500">{item.curso_codigo}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm font-medium">{item.nombre_paralelo}</div>
+                <div className="text-sm text-gray-500">{item.codigo_paralelo}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">{formatDate(item.fecha_inicio)}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">{formatDate(item.fecha_fin)}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">{item.horario}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">{item.aula || "N/A"}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <span className="font-medium">{item.total_inscritos}</span>
+                <span className="text-gray-500">/{item.max_estudiantes}</span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">{getEstadoBadge(item.paralelo_estado)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+
+  const renderCursosInstructoresTable = (data) => (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Curso</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Instructor</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Especialidad</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paralelos</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estudiantes</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {data.map((item, index) => (
+            <tr key={`${item.instructor_id}-${item.curso_codigo}-${index}`} className="hover:bg-gray-50">
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm font-medium">{item.curso_nombre}</div>
+                <div className="text-sm text-gray-500">{item.curso_codigo}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm font-medium">
+                  {item.instructor_nombre} {item.instructor_apellido}
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">{item.instructor_email}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">{item.especialidad || "N/A"}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-center">{item.total_paralelos}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-center">{item.total_estudiantes}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+
+  const renderCompletoTable = (data) => (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Curso</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paralelo</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Instructor</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Período</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Inscritos</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aprobados</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Promedio</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {data.map((item, index) => (
+            <tr key={`${item.codigo_paralelo}-${index}`} className="hover:bg-gray-50">
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm font-medium">{item.curso_nombre}</div>
+                <div className="text-sm text-gray-500">{item.curso_codigo}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm font-medium">{item.nombre_paralelo}</div>
+                <div className="text-sm text-gray-500">{item.aula}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm font-medium">
+                  {item.instructor_nombre} {item.instructor_apellido}
+                </div>
+                <div className="text-sm text-gray-500">{item.especialidad}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <div>{formatDate(item.fecha_inicio)}</div>
+                <div className="text-gray-500">{formatDate(item.fecha_fin)}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-center">{item.total_inscritos}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-green-600 font-medium">
+                {item.aprobados}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-center">{item.promedio_notas || "N/A"}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{getEstadoBadge(item.paralelo_estado)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+
   const renderNotasTable = (data) => (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -512,14 +775,14 @@ export default function EstadisticasReportesPage() {
                 {nota.calificacion_final ? (
                   <span
                     className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      nota.calificacion_final >= 7
+                      nota.calificacion_final >= 51
                         ? "bg-green-100 text-green-800"
-                        : nota.calificacion_final >= 5
+                        : nota.calificacion_final >= 40
                           ? "bg-yellow-100 text-yellow-800"
                           : "bg-red-100 text-red-800"
                     }`}
                   >
-                    {nota.calificacion_final}/10
+                    {nota.calificacion_final}/100
                   </span>
                 ) : (
                   <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
@@ -530,10 +793,10 @@ export default function EstadisticasReportesPage() {
               <td className="px-6 py-4 whitespace-nowrap">
                 <span
                   className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    nota.calificacion_final >= 7 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                    nota.calificacion_final >= 51 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                   }`}
                 >
-                  {nota.calificacion_final >= 7 ? "Aprobado" : "Reprobado"}
+                  {nota.calificacion_final >= 51 ? "Aprobado" : "Reprobado"}
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
@@ -546,6 +809,58 @@ export default function EstadisticasReportesPage() {
                     Pendiente
                   </span>
                 )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+
+  const renderAprobadosTable = (data) => (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Curso</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paralelo</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Instructor</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Período</th>
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total</th>
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aprobados</th>
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Reprobados</th>
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">% Aprobados</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {data.map((item, index) => (
+            <tr key={`${item.codigo_paralelo}-${index}`} className="hover:bg-gray-50">
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm font-medium">{item.curso_nombre}</div>
+                <div className="text-sm text-gray-500">{item.curso_codigo}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm font-medium">{item.nombre_paralelo}</div>
+                <div className="text-sm text-gray-500">{item.codigo_paralelo}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                {item.instructor_nombre} {item.instructor_apellido}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <div>{formatDate(item.fecha_inicio)}</div>
+                <div className="text-gray-500">{formatDate(item.fecha_fin)}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-center text-sm">{item.total_estudiantes}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-green-600 font-medium">
+                {item.aprobados}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-red-600 font-medium">
+                {item.reprobados}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-center">
+                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                  {item.porcentaje_aprobados || 0}%
+                </span>
               </td>
             </tr>
           ))}
@@ -602,33 +917,59 @@ export default function EstadisticasReportesPage() {
     </div>
   )
 
-  // Renderizar tablas adicionales (simplificadas por espacio)
-  const renderCursosParalelosTable = (data) => (
-    <div className="text-center py-8 text-gray-500">
-      Tabla de Cursos por Paralelos - {data.length} registros encontrados
-    </div>
-  )
-
-  const renderCursosInstructoresTable = (data) => (
-    <div className="text-center py-8 text-gray-500">
-      Tabla de Cursos con Instructores - {data.length} registros encontrados
-    </div>
-  )
-
-  const renderCompletoTable = (data) => (
-    <div className="text-center py-8 text-gray-500">
-      Tabla Completa (Curso + Paralelo + Instructor) - {data.length} registros encontrados
-    </div>
-  )
-
-  const renderAprobadosTable = (data) => (
-    <div className="text-center py-8 text-gray-500">
-      Tabla de Aprobados/Reprobados - {data.length} registros encontrados
-    </div>
-  )
-
   const renderEgresadosTable = (data) => (
-    <div className="text-center py-8 text-gray-500">Tabla de Egresados - {data.length} registros encontrados</div>
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estudiante</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Curso</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paralelo</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Instructor</th>
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Nota Final</th>
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Certificado</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Egreso</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {data.map((egresado, index) => (
+            <tr key={`${egresado.estudiante_nombre}-${egresado.curso_codigo}-${index}`} className="hover:bg-gray-50">
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm font-medium">
+                  {egresado.estudiante_nombre} {egresado.estudiante_apellido}
+                </div>
+                <div className="text-sm text-gray-500">{getTipoEstudianteBadge(egresado.tipo_estudiante)}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm font-medium">{egresado.curso_nombre}</div>
+                <div className="text-sm text-gray-500">{egresado.curso_codigo}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">{egresado.paralelo_nombre}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                {egresado.instructor_nombre} {egresado.instructor_apellido}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-center">
+                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                  {egresado.calificacion_final}/100
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-center">
+                {egresado.certificado_generado ? (
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                    Generado
+                  </span>
+                ) : (
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                    Pendiente
+                  </span>
+                )}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">{formatDate(egresado.certificado_fecha)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 
   return (
@@ -681,16 +1022,25 @@ export default function EstadisticasReportesPage() {
               <Filter className="w-5 h-5 text-gray-400 mr-2" />
               <h3 className="text-lg font-medium text-gray-900">Filtros de Búsqueda</h3>
             </div>
-            <button
-              onClick={handleApplyFilters}
-              disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-blue-400"
-            >
-              {loading ? "Cargando..." : "Aplicar Filtros"}
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={handleClearFilters}
+                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+              >
+                Limpiar
+              </button>
+              <button
+                onClick={handleApplyFilters}
+                disabled={loading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-blue-400"
+              >
+                {loading ? "Cargando..." : "Aplicar Filtros"}
+              </button>
+            </div>
           </div>
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Filtros básicos */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Fecha Inicio</label>
                 <input
@@ -739,6 +1089,9 @@ export default function EstadisticasReportesPage() {
                   <option value="externo">Externo</option>
                 </select>
               </div>
+
+              {/* Filtros específicos según el reporte */}
+              {getSpecificFilters()}
             </div>
           </div>
         </div>
