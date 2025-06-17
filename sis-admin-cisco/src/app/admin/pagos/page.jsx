@@ -237,17 +237,8 @@ export default function PagosPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800 flex items-center">
-          <FiDollarSign className="mr-2 text-blue-600" /> Gestión de Pagos
+          <FiDollarSign className="mr-2 text-blue-600" /> Hitorial de Pagos
         </h1>
-        <button
-          onClick={() => {
-            setPagoSeleccionado(null)
-            setModalOpen(true)
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
-        >
-          <FiPlus className="mr-2" /> Nuevo Pago
-        </button>
       </div>
 
       {/* Barra de búsqueda y filtros */}
@@ -271,7 +262,7 @@ export default function PagosPage() {
           >
             <FiFilter className="mr-2" /> Filtros
           </button>
-          <button
+          {/*<button
             onClick={exportarPagos}
             className="flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
           >
@@ -282,7 +273,7 @@ export default function PagosPage() {
             className="flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
           >
             <FiRefreshCw className="mr-2" /> Actualizar
-          </button>
+          </button>*/}
         </div>
 
         {/* Panel de filtros avanzados */}

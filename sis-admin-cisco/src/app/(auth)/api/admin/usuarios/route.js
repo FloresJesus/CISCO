@@ -188,6 +188,8 @@ export async function POST(request) {
         "INSERT INTO log_sistema (usuario_id, accion, entidad, entidad_id, detalles) VALUES (?, ?, ?, ?, ?)",
         [adminData.id, "crear", "usuario", userId, `Creación de usuario con rol ${rol}${rol === 'estudiante' ? ` (${tipo_estudiante})` : ''}`],
       )
+      // Registran en notificaciones
+      
 
       // Confirmar transacción
       await db.query("COMMIT")

@@ -90,7 +90,6 @@ export default function CertificadosEstudiantePage() {
       setError("Error al descargar código QR")
     }
   }
-
   const previewCertificate = (certificado) => {
     setSelectedCert(certificado)
     setShowPreview(true)
@@ -186,7 +185,7 @@ export default function CertificadosEstudiantePage() {
                         <span
                           className={`px-2 py-1 rounded-full text-sm font-medium ${getGradeColor(certificado.calificacion_final)}`}
                         >
-                          {Number(certificado.calificacion_final).toFixed(1)}/10
+                          {Number(certificado.calificacion_final).toFixed(1)}/100
                         </span>
                       </div>
                       {certificado.firmado_admin && (

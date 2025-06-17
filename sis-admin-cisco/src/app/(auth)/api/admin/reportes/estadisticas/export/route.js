@@ -54,10 +54,10 @@ export async function GET(request) {
 
     const [rendimientoGeneral] = await query(`
       SELECT 
-        COUNT(CASE WHEN calificacion_final >= 9 THEN 1 END) as excelente,
-        COUNT(CASE WHEN calificacion_final >= 7 AND calificacion_final < 9 THEN 1 END) as bueno,
-        COUNT(CASE WHEN calificacion_final >= 5 AND calificacion_final < 7 THEN 1 END) as regular,
-        COUNT(CASE WHEN calificacion_final < 5 THEN 1 END) as deficiente,
+        COUNT(CASE WHEN calificacion_final >= 85 THEN 1 END) as excelente,
+        COUNT(CASE WHEN calificacion_final >= 70 AND calificacion_final < 90 THEN 1 END) as bueno,
+        COUNT(CASE WHEN calificacion_final >= 51 AND calificacion_final < 70 THEN 1 END) as regular,
+        COUNT(CASE WHEN calificacion_final < 51 THEN 1 END) as deficiente,
         AVG(calificacion_final) as promedio_general,
         COUNT(*) as total_calificaciones
       FROM inscripcion
@@ -117,22 +117,22 @@ export async function GET(request) {
       rendimientoSheet.addRow(["Categoría", "Cantidad", "Porcentaje"])
       const total = rendimientoGeneral.total_calificaciones || 1
       rendimientoSheet.addRow([
-        "Excelente (9-10)",
+        "Excelente (85-100)",
         rendimientoGeneral.excelente || 0,
         `${(((rendimientoGeneral.excelente || 0) / total) * 100).toFixed(2)}%`,
       ])
       rendimientoSheet.addRow([
-        "Bueno (7-8.9)",
+        "Bueno (70-84.9)",
         rendimientoGeneral.bueno || 0,
         `${(((rendimientoGeneral.bueno || 0) / total) * 100).toFixed(2)}%`,
       ])
       rendimientoSheet.addRow([
-        "Regular (5-6.9)",
+        "Regular (51-60.9)",
         rendimientoGeneral.regular || 0,
         `${(((rendimientoGeneral.regular || 0) / total) * 100).toFixed(2)}%`,
       ])
       rendimientoSheet.addRow([
-        "Deficiente (<5)",
+        "Deficiente (<51)",
         rendimientoGeneral.deficiente || 0,
         `${(((rendimientoGeneral.deficiente || 0) / total) * 100).toFixed(2)}%`,
       ])
@@ -171,6 +171,8 @@ export async function GET(request) {
         },
       })
     }
+
+    const baseUrl = `${request.nextUrl.protocol}//${request.nextUrl.host}`;
 
     if (format === "pdf") {
       // Generar HTML para PDF
@@ -264,9 +266,13 @@ export async function GET(request) {
           </style>
         </head>
         <body>
-          <div class="header">
-            <h1>Reporte de Estadísticas</h1>
-            <p>Cisco Academy - ${new Date().toLocaleDateString("es-ES")}</p>
+          <div class="header" style="display: flex; align-items: center; justify-content: space-between;">
+            <img src="${baseUrl}/images/cisco2.png" alt="Logo Izquierdo" style="height: 50px;">
+            <div style="text-align: center; flex: 1;">
+              <h1 style="margin: 0;">Reporte de Estadísticas</h1>
+              <p style="margin: 0;">Cisco Academy - ${new Date().toLocaleDateString("es-ES")}</p>
+            </div>
+            <img src="${baseUrl}/images/utologo.png" alt="Logo derecho" style="height: 50px;">
           </div>
 
           <div class="section">
@@ -369,22 +375,22 @@ export async function GET(request) {
               </thead>
               <tbody>
                 <tr>
-                  <td>Excelente (9-10)</td>
+                  <td>Excelente (85-100)</td>
                   <td>${rendimientoGeneral.excelente || 0}</td>
                   <td>${(((rendimientoGeneral.excelente || 0) / (rendimientoGeneral.total_calificaciones || 1)) * 100).toFixed(2)}%</td>
                 </tr>
                 <tr>
-                  <td>Bueno (7-8.9)</td>
+                  <td>Bueno (70-84.9)</td>
                   <td>${rendimientoGeneral.bueno || 0}</td>
                   <td>${(((rendimientoGeneral.bueno || 0) / (rendimientoGeneral.total_calificaciones || 1)) * 100).toFixed(2)}%</td>
                 </tr>
                 <tr>
-                  <td>Regular (5-6.9)</td>
+                  <td>Regular (51-60.9)</td>
                   <td>${rendimientoGeneral.regular || 0}</td>
                   <td>${(((rendimientoGeneral.regular || 0) / (rendimientoGeneral.total_calificaciones || 1)) * 100).toFixed(2)}%</td>
                 </tr>
                 <tr>
-                  <td>Deficiente (&lt;5)</td>
+                  <td>Deficiente (&lt;51)</td>
                   <td>${rendimientoGeneral.deficiente || 0}</td>
                   <td>${(((rendimientoGeneral.deficiente || 0) / (rendimientoGeneral.total_calificaciones || 1)) * 100).toFixed(2)}%</td>
                 </tr>

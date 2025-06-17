@@ -16,6 +16,7 @@
     "exceljs": "^4.4.0",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "next": "15.2.1",
     "postcss": "^8.5.3",
     "puppeteer": "^24.10.0",

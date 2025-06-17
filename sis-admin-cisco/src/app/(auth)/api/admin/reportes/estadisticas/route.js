@@ -124,10 +124,10 @@ export async function GET(request) {
     // 8. Rendimiento académico general
     const [rendimientoGeneral] = await db.query(`
       SELECT 
-        COUNT(CASE WHEN calificacion_final >= 9 THEN 1 END) as excelente,
-        COUNT(CASE WHEN calificacion_final >= 7 AND calificacion_final < 9 THEN 1 END) as bueno,
-        COUNT(CASE WHEN calificacion_final >= 5 AND calificacion_final < 7 THEN 1 END) as regular,
-        COUNT(CASE WHEN calificacion_final < 5 THEN 1 END) as deficiente,
+        COUNT(CASE WHEN calificacion_final >= 85 THEN 1 END) as excelente,
+        COUNT(CASE WHEN calificacion_final >= 70 AND calificacion_final < 85 THEN 1 END) as bueno,
+        COUNT(CASE WHEN calificacion_final >= 51 AND calificacion_final < 70 THEN 1 END) as regular,
+        COUNT(CASE WHEN calificacion_final < 51 THEN 1 END) as deficiente,
         AVG(calificacion_final) as promedio_general,
         COUNT(*) as total_calificaciones
       FROM inscripcion

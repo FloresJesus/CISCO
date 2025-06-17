@@ -219,28 +219,28 @@ export default function EstadisticasTab({ data, loading }) {
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="text-center p-4 border rounded-lg bg-green-50">
-              <p className="text-sm font-medium text-green-700">Excelente (9-10)</p>
+              <p className="text-sm font-medium text-green-700">Excelente (85-100)</p>
               <p className="text-2xl font-bold text-green-600">{rendimiento.excelente || 0}</p>
               <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-700 mt-2">
                 {formatPercentage(((rendimiento.excelente || 0) / (rendimiento.total_calificaciones || 1)) * 100)}
               </span>
             </div>
             <div className="text-center p-4 border rounded-lg bg-blue-50">
-              <p className="text-sm font-medium text-blue-700">Bueno (7-8.9)</p>
+              <p className="text-sm font-medium text-blue-700">Bueno (70-84.9)</p>
               <p className="text-2xl font-bold text-blue-600">{rendimiento.bueno || 0}</p>
               <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-700 mt-2">
                 {formatPercentage(((rendimiento.bueno || 0) / (rendimiento.total_calificaciones || 1)) * 100)}
               </span>
             </div>
             <div className="text-center p-4 border rounded-lg bg-yellow-50">
-              <p className="text-sm font-medium text-yellow-700">Regular (5-6.9)</p>
+              <p className="text-sm font-medium text-yellow-700">Regular (51-60.9)</p>
               <p className="text-2xl font-bold text-yellow-600">{rendimiento.regular || 0}</p>
               <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-700 mt-2">
                 {formatPercentage(((rendimiento.regular || 0) / (rendimiento.total_calificaciones || 1)) * 100)}
               </span>
             </div>
             <div className="text-center p-4 border rounded-lg bg-red-50">
-              <p className="text-sm font-medium text-red-700">Deficiente (&lt;5)</p>
+              <p className="text-sm font-medium text-red-700">Deficiente (&lt;51)</p>
               <p className="text-2xl font-bold text-red-600">{rendimiento.deficiente || 0}</p>
               <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-700 mt-2">
                 {formatPercentage(((rendimiento.deficiente || 0) / (rendimiento.total_calificaciones || 1)) * 100)}

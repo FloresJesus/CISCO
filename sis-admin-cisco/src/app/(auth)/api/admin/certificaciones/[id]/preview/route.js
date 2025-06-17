@@ -1,22 +1,21 @@
-import { NextResponse } from "next/server"
-import { verifyAdminToken } from "@/libs/auth"
-import { query } from "@/libs/db"
-import { jsPDF } from "jspdf"
-import QRCode from "qrcode"
+import { NextResponse } from "next/server";
+import { verifyAdminToken } from "@/libs/auth";
+import { query } from "@/libs/db";
+import { jsPDF } from "jspdf";
+import QRCode from "qrcode";
 
 export async function GET(request, { params }) {
   try {
-    // Verificar autenticación de administrador
-    const authResult = await verifyAdminToken(request)
+    // Verificar autenticación
+    const authResult = await verifyAdminToken(request);
     if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: authResult.status || 401 })
+      return NextResponse.json({ error: authResult.error }, { status: authResult.status || 401 });
     }
 
-    const { id } = params // certificado_id
+    const { id } = params;
 
-    // Obtener datos del certificado
-    const [certificado] = await query(
-        `
+    // Usa el mismo código de generación de PDF que ya tienes
+    const [certificado] = await query(`
       SELECT 
         cert.id,
         cert.url_verificacion,
@@ -38,11 +37,9 @@ export async function GET(request, { params }) {
       JOIN curso c ON p.curso_id = c.id
       LEFT JOIN instructor inst ON p.instructor_id = inst.id
       WHERE cert.id = ?
-    `,
-        [id],
-    )
+    `, [id]);
     if (!certificado) {
-      return NextResponse.json({ error: "Certificado no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "Certificado no encontrado" }, { status: 404 });
     }
 
     // Generar código QR
@@ -56,14 +53,10 @@ export async function GET(request, { params }) {
       },
     })
 
-    // Crear PDF en orientación horizontal
-    const doc = new jsPDF({
-      orientation: "landscape",
-      unit: "mm",
-      format: "a4",
-    })
+    // Generar PDF (usa el mismo código que ya tienes)
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
 
-    // 1. Cargar imágenes desde la carpeta public
+        // 1. Cargar imágenes desde la carpeta public
     // Necesitamos rutas absolutas para el servidor
     const baseUrl = `${request.nextUrl.protocol}//${request.nextUrl.host}`;
     
@@ -204,20 +197,16 @@ export async function GET(request, { params }) {
     // Fecha de emisión
     doc.text(`Fecha de emisión: ${new Date(certificado.fecha_emision).toLocaleDateString('es-ES')}`, 148.5, firmasY + 35, { align: "center" })
 
-
-    // Generar el PDF como buffer
-    const pdfBuffer = Buffer.from(doc.output("arraybuffer"))
-
-    return new NextResponse(pdfBuffer, {
+    // Devuelve el PDF para vista previa (no descarga)
+    return new NextResponse(doc.output("arraybuffer"), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="Certificado-Cisco-${certificado.estudiante_apellido}-${certificado.curso_codigo}.pdf"`,
-        "Content-Length": pdfBuffer.length.toString(),
-      },
-    })
+        "Content-Disposition": "inline; filename=preview.pdf" // Importante: 'inline' para visualización
+      }
+    });
   } catch (error) {
-    console.error("Error generando PDF del certificado:", error)
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
+    console.error("Error generando vista previa:", error);
+    return NextResponse.json({ error: "Error al generar vista previa" }, { status: 500 });
   }
 }
 

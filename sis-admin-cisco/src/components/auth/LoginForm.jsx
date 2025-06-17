@@ -12,6 +12,7 @@ const LoginPage = () => {
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/'
   const sessionExpired = searchParams.get('session_expired') === '1'
+  const [contador, setContador] = useState(0)
 
   const [credentials, setCredentials] = useState({
     email: '',
@@ -53,6 +54,13 @@ const LoginPage = () => {
     setErrors(newErrors)
     return isValid
   }
+  //contadores de credenciales invalidas
+  const increment = () => {
+    setContador(contador + 1);
+    if (contador >= 2){
+      router.push('/')
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -71,11 +79,12 @@ const LoginPage = () => {
       })
     } catch (err) {
       let errorMessage = 'Error al iniciar sesión'
-
       if (err.response) {
         switch (err.response.status) {
           case 401:
             errorMessage = 'Credenciales incorrectas'
+
+              increment();
             break
           case 403:
             errorMessage = 'Cuenta no verificada. Por favor verifica tu correo.'

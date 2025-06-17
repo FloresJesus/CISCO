@@ -160,6 +160,8 @@ export async function GET(request) {
       })
     }
 
+    const baseUrl = `${request.nextUrl.protocol}//${request.nextUrl.host}`;
+
     if (format === "pdf") {
       // Generar HTML para PDF
       const htmlContent = `
@@ -254,9 +256,13 @@ export async function GET(request) {
           </style>
         </head>
         <body>
-          <div class="header">
-            <h1>Reporte Financiero</h1>
-            <p>Cisco Academy - ${new Date().toLocaleDateString("es-ES")}</p>
+          <div class="header" style="display: flex; align-items: center; justify-content: space-between;">
+            <img src="${baseUrl}/images/cisco2.png" alt="Logo Izquierdo" style="height: 50px;">
+            <div style="text-align: center; flex: 1;">
+              <h1 style="margin: 0;">Reporte de Financiero</h1>
+              <p style="margin: 0;">Cisco Academy - ${new Date().toLocaleDateString("es-ES")}</p>
+            </div>
+            <img src="${baseUrl}/images/utologo.png" alt="Logo derecho" style="height: 50px;">
           </div>
 
           <div class="section">

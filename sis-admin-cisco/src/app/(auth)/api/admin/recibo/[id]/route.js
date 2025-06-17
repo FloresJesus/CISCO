@@ -12,7 +12,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: authResult.error }, { status: authResult.status || 401 })
     }
 
-    const { id } = params // certificado_id
+    const { id } = params // estudiante_id
 
     // Obtener datos del certificado
     const [certificado] = await query(
@@ -197,10 +197,7 @@ export async function GET(request, { params }) {
 
     // Código QR
     doc.setFillColor(255, 255, 255, 20)
-    //doc.roundedRect(30, verificationY, 40, 40, 2, 2, "F")
-    if (qrCodeDataURL) {
-      doc.addImage(qrCodeDataURL, "PNG", 133.5, firmasY, 30, 30, { align: "center" })
-    }
+
     // Fecha de emisión
     doc.text(`Fecha de emisión: ${new Date(certificado.fecha_emision).toLocaleDateString('es-ES')}`, 148.5, firmasY + 35, { align: "center" })
 

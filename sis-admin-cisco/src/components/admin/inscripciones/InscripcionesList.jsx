@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { FaEdit, FaTrash, FaEye, FaSearch, FaUserPlus, FaChevronLeft, FaChevronRight, FaFileAlt } from "react-icons/fa"
+import { FaEdit, FaTrash, FaEye, FaSearch, FaUserPlus, FaChevronLeft, FaChevronRight, FaFileAlt,FaDownload } from "react-icons/fa"
 import api from "@/libs/api"
 import { formatDate } from "@/libs/utils"
 
@@ -100,6 +100,25 @@ export default function InscripcionesList() {
     }
   }
 
+  const downloadRecibo = async (estudianteID) => {
+    try {
+      const response = await api.get(`/admin/recibo/download/${estudianteID}`, {
+        responseType: "blob",
+      })
+
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement("a")
+      link.href = url
+      link.setAttribute("download", `certificado-${estudianteID}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error("Error downloading:", error)
+      setError("Error al descargar el recibo")
+    }
+  }
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
@@ -252,11 +271,11 @@ export default function InscripcionesList() {
                         </button>
                         {inscripcion.estado === "completada" && (
                           <button
-                            onClick={() => router.push(`/admin/academico/inscripciones/${inscripcion.id}/certificado`)}
+                            onClick={() => downloadRecibo(inscripcion.estudiante_id)}
                             className="text-green-600 hover:text-green-900"
-                            title="Certificado"
+                            title="Comprobante"
                           >
-                            <FaFileAlt />
+                            <FaDownload />
                           </button>
                         )}
                         <button

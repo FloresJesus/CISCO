@@ -73,10 +73,10 @@ export async function GET(request) {
         c.codigo,
         COUNT(i.id) as total_estudiantes,
         COUNT(CASE WHEN i.estado = 'completada' THEN 1 END) as completados,
-        COUNT(CASE WHEN i.calificacion_final >= 7 THEN 1 END) as aprobados,
-        COUNT(CASE WHEN i.calificacion_final < 7 AND i.calificacion_final IS NOT NULL THEN 1 END) as reprobados,
+        COUNT(CASE WHEN i.calificacion_final >= 51 THEN 1 END) as aprobados,
+        COUNT(CASE WHEN i.calificacion_final < 51 AND i.calificacion_final IS NOT NULL THEN 1 END) as reprobados,
         AVG(CASE WHEN i.calificacion_final IS NOT NULL THEN i.calificacion_final END) as promedio_calificacion,
-        ROUND(COUNT(CASE WHEN i.calificacion_final >= 7 THEN 1 END) * 100.0 / NULLIF(COUNT(CASE WHEN i.calificacion_final IS NOT NULL THEN 1 END), 0), 2) as tasa_aprobacion
+        ROUND(COUNT(CASE WHEN i.calificacion_final >= 51 THEN 1 END) * 100.0 / NULLIF(COUNT(CASE WHEN i.calificacion_final IS NOT NULL THEN 1 END), 0), 2) as tasa_aprobacion
       FROM curso c
       LEFT JOIN paralelo p ON c.id = p.curso_id
       LEFT JOIN inscripcion i ON p.id = i.paralelo_id
@@ -97,7 +97,7 @@ export async function GET(request) {
         COUNT(i.id) as total_estudiantes,
         COUNT(CASE WHEN i.estado = 'completada' THEN 1 END) as completados,
         AVG(CASE WHEN i.calificacion_final IS NOT NULL THEN i.calificacion_final END) as promedio_calificacion,
-        ROUND(COUNT(CASE WHEN i.calificacion_final >= 7 THEN 1 END) * 100.0 / NULLIF(COUNT(CASE WHEN i.calificacion_final IS NOT NULL THEN 1 END), 0), 2) as tasa_aprobacion
+        ROUND(COUNT(CASE WHEN i.calificacion_final >= 51 THEN 1 END) * 100.0 / NULLIF(COUNT(CASE WHEN i.calificacion_final IS NOT NULL THEN 1 END), 0), 2) as tasa_aprobacion
       FROM instructor inst
       LEFT JOIN paralelo p ON inst.id = p.instructor_id
       LEFT JOIN inscripcion i ON p.id = i.paralelo_id

@@ -184,9 +184,7 @@ export default function EstudiantePagos() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Estado
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Acciones
-                    </th>
+
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -216,28 +214,6 @@ export default function EstudiantePagos() {
                           >
                             {pago.estado.charAt(0).toUpperCase() + pago.estado.slice(1)}
                           </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          {pago.referencia && (
-                            <button
-                              onClick={() => navigator.clipboard.writeText(pago.referencia)}
-                              className="text-blue-600 hover:text-blue-900"
-                              title="Copiar referencia"
-                            >
-                              <FaEye />
-                            </button>
-                          )}
-                          {pago.comprobante && (
-                            <button
-                              onClick={() => window.open(pago.comprobante, "_blank")}
-                              className="text-green-600 hover:text-green-900"
-                              title="Ver comprobante"
-                            >
-                              <FaFileDownload />
-                            </button>
-                          )}
                         </div>
                       </td>
                     </tr>
